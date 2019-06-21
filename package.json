@@ -1,0 +1,57 @@
+{
+  "name": "firestore-odm",
+  "version": "1.0.0",
+  "description": "ODM for Firestore",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node --inspect=5858 -r ts-node/register ./src/index.ts",
+    "start2": "node ./dist/index.js",
+    "start:watch": "nodemon",
+    "build": "tsc",
+    "test": "mocha --timeout 10000 --require ts-node/register src/**/*.test.ts",
+    "fs-test": "firebase emulators:exec --only firestore 'npm test'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freshspire-inc/firestore-odm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/joi": "^15.0.3",
+    "firebase": "^6.2.0",
+    "lodash": "^4.17.11",
+    "ts-node": "^8.0.3",
+    "typescript": "^3.3.3333"
+  },
+  "devDependencies": {
+    "@firebase/testing": "^0.11.0",
+    "@types/chai": "^4.1.7",
+    "@types/hapi__joi": "^15.0.2",
+    "@types/lodash": "^4.14.134",
+    "@types/mocha": "^5.2.7",
+    "@types/sinon-chai": "^3.2.2",
+    "chai": "^4.2.0",
+    "eslint": "^5.15.1",
+    "eslint-plugin-import": "^2.16.0",
+    "mocha": "^6.1.4",
+    "nodemon": "^1.18.10",
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0",
+    "tslint": "^5.14.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+    ],
+    "watch": [
+      "src"
+    ],
+    "exec": "npm start",
+    "ext": "ts"
+  }
+}
