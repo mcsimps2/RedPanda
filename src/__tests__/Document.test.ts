@@ -28,55 +28,22 @@ RedPanda.connect(db);
 
 describe('UserDocument', () => {
     describe('constructor', () => {
-        it('validates the fields', () => {
-            // Invalid email
-            try {
-                const user = new User({
-                    email: 'hello'
-                });
-                expect(true).to.be.false;
-            }
-            catch (e) {
-                expect(e.message).to.be.equal('"email" must be a valid email')
-            }
-
-            // Valid email, no error thrown
+        it('does not validate and allows unknowns to be set (but not necessarily saved)', () => {
             const user = new User({
-                email: 'hello@gmail.com'
+                email: 'hi',
+                unknownfield: 'some_val'
             });
-            expect(true).to.be.true;
-
-            // Email is a required field
-            try {
-                const user = new User({
-                    first: 'Matt'
-                });
-                expect(true).to.be.false;
-            }
-            catch (e) {
-                expect(e.message).to.be.equal('"email" is required');
-            }
+            expect(user.email).to.be.equal('hi');
+            expect(user.unknownfield).to.be.equal('some_val');
         })
 
+        it('can set fields after constructing', async () => {
+            const user = new User();
+            user.email = 'matt@gmail.com';
+            const id = await user.save();
 
-        it('removes unknown fields if the strict option is set', () => {
-            const user = new User({
-                email: 'hello@gmail.com',
-                unknownfield: 'uhoh'
-            }, undefined, true);
-            expect(user.email).to.be.equal('hello@gmail.com');
-            expect(user.unknownfield).to.not.exist;
-        })
-
-        it('allows unknown fields if the strict option is not set', () => {
-            // strict is set to true on user, so need to explicitly say false
-            // because undefined doesn't work
-            const user = new User({
-                email: 'hello@gmail.com',
-                unknownfield: 'uhoh'
-            }, undefined, false);
-            expect(user.email).to.be.equal('hello@gmail.com');
-            expect(user.unknownfield).to.be.equal('uhoh');
+            const actual = await User.findByID(id);
+            expect(actual.email).to.be.equal('matt@gmail.com');
         })
     })
 
@@ -235,7 +202,7 @@ describe('UserDocument', () => {
             const user = new User({
                 email: 'mattsimpson@gmail.com',
                 unknownfield: 'somevalue'
-            }, undefined, false);
+            });
             const data = user.validate(false);
             expect(data).to.be.eql({
                 email: 'mattsimpson@gmail.com',
@@ -256,16 +223,51 @@ describe('UserDocument', () => {
             expect(actual.email).to.be.equal('matty@gmail.com');
         })
 
-        it('adds new fields', async () => {
+        it('catches invalid fields', async () => {
             const user = new User({
                 email: 'mattsimpson@gmail.com',
-            }, undefined, false);
+            });
+            try {
+                await user.update({
+                    email: 'blah',
+                    newfield: 'newvalue'
+                });
+                expect(true).to.be.false;
+            } catch (e) {
+                expect(e.message).to.be.equal('"email" must be a valid email');
+            }
+        })
+
+        it('does not add unknown fields under strict mode', async () => {
+            const user = new User({
+                email: 'mattsimpson@gmail.com',
+            });
+            await user.save();
             const id = await user.update({
                 email: 'matty@gmail.com',
                 newfield: 'newvalue'
-            }, false);
+            });
             const actual = await User.findByID(id);
             expect(actual.email).to.be.equal('matty@gmail.com');
+            expect(actual.newfield).to.not.exist;
+        })
+
+        it('adds unknown fields if not under strict mode', async () => {
+            const user = new User({
+                email: 'mattsimpson@gmail.com',
+            });
+            await user.save();
+            const business = new Business({
+                name: 'Muffin Magic',
+                user: user
+            });
+            const id = await business.save();
+            await business.update({
+                name: 'Muffin Magic 2',
+                newfield: 'newvalue'
+            });
+            const actual = await Business.findByID(id);
+            expect(actual.name).to.be.equal('Muffin Magic 2');
             expect(actual.newfield).to.be.equal('newvalue');
         })
 
@@ -288,7 +290,7 @@ describe('UserDocument', () => {
         it('rolls back upon a save error', async () => {
             const user = new User({
                 email: 'mattsimpson@gmail.com'
-            }, undefined, false);
+            });
             const save_stub = sinon.stub(user, 'save').throws();
             try {
                 await user.update({
@@ -338,6 +340,50 @@ describe('UserDocument', () => {
             const id = await user.save();
             const actual = await User.findByID(id);
             expect(actual.email).to.be.equal('matty@gmail.com');
+        })
+
+        it('does not save unknown fields if strict is set', async () => {
+            const user = new User({
+                email: 'mattsimpson@gmail.com',
+                first: 'Matt',
+                unknownfield: 'unknown_value'
+            });
+            const id = await user.save();
+
+            const actual = await User.findByID(id);
+            expect(actual.email).to.be.equal('mattsimpson@gmail.com');
+            expect(actual.unknownfield).to.not.exist;
+        })
+
+        it('saves unknown fields if strict is not set', async () => {
+            const user = new User({
+                email: 'mattsimpson@gmail.com',
+                first: 'Matt'
+            });
+            await user.save();
+            const business = new Business({
+                name: 'Merry Muffins',
+                user: user,
+                unknownfield: 'some_value'
+            });
+
+            const id = await business.save();
+
+            const actual = await Business.findByID(id);
+            expect(actual.unknownfield).to.be.equal('some_value');
+        })
+
+        it('throws an error if any fields are invalid', async () => {
+            try {
+                const user = new User({
+                    email: 'blah',
+                    first: 'Matt'
+                });
+                await user.save();
+                expect(true).to.be.false;
+            } catch (e) {
+                expect(e.message).to.be.equal('"email" must be a valid email');
+            }
         })
     })
 

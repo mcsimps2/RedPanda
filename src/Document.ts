@@ -132,21 +132,20 @@ class Document {
      * @param doc_ref (Optional) Reference to the document in the database
      * @param doc_snapshot (Optional) Snapshot of the document
      */
-    constructor(data: object)
-    constructor(data: object, id: string)
-    constructor(data: object, id?: string, strict?: boolean)
-    constructor(data: object, id?: string, strict?: boolean, doc_ref?: firestore.DocumentReference, doc_snapshot?: firestore.DocumentSnapshot)
-    constructor(data: object, id: string = null, strict?: boolean, doc_ref: firestore.DocumentReference = null, doc_snapshot: firestore.DocumentSnapshot = null) {
+    constructor(data?: object)
+    constructor(data?: object, id?: string)
+    constructor(data?: object, id?: string, doc_ref?: firestore.DocumentReference, doc_snapshot?: firestore.DocumentSnapshot)
+    constructor(data: object = {}, id: string = null, doc_ref: firestore.DocumentReference = null, doc_snapshot: firestore.DocumentSnapshot = null) {
         //@ts-ignore
-        strict = strict !== undefined ? strict : this.constructor.strict;
-        const options = strict ? { stripUnknown: true } : { allowUnknown: true, stripUnknown: false };
+        // strict = strict !== undefined ? strict : this.constructor.strict;
+        // const options = strict ? { stripUnknown: true } : { allowUnknown: true, stripUnknown: false };
         //@ts-ignore
-        const subdata = this.constructor.validate(data, options);
+        // const subdata = this.constructor.validate(data, options);
         this.id = id;
         this.doc_ref = doc_ref;
         this.doc_snapshot = doc_snapshot;
         const proxy = this._createProxy();
-        Object.assign(proxy, subdata);
+        Object.assign(proxy, data);
         return proxy;
     }
 
@@ -409,6 +408,7 @@ class Document {
         }
     }
 
+    // TODO: Make this reload foreign documents too
     async reload() {
         if (!this.doc_ref) {
             throw Error('Object has not been saved to database yet');
@@ -448,7 +448,7 @@ class Document {
         const data = snapshot.data();
         // Strict is false here because we may have some unknown fields in the DB
         // that we want to populate up
-        const obj = new this(data, snapshot.id, false, snapshot.ref, snapshot);
+        const obj = new this(data, snapshot.id, snapshot.ref, snapshot);
         return obj;
     }
 

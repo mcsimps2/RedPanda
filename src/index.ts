@@ -10,7 +10,9 @@ export default class RedPanda {
     }
     static types = Types;
 
-    static create(name: string, schema: object, strict = false, collection?: string|firestore.CollectionReference) {
+    static create(name: string, schema: object, strict?: boolean): typeof Document
+    static create(name: string, schema: object, strict?: boolean, collection?: string|firestore.CollectionReference): typeof Document
+    static create(name: string, schema: object, strict = false, collection?: string|firestore.CollectionReference): typeof Document {
         // const new_doc: Document = class extends Document {}
         // Object.defineProperty(new_doc, 'name', {value: name});
         // Another clever way to do this:
