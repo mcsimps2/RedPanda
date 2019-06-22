@@ -7,7 +7,7 @@
     "start": "node --inspect=5858 -r ts-node/register ./src/index.ts",
     "start2": "node ./dist/index.js",
     "start:watch": "nodemon",
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.browser.json",
     "test": "mocha --timeout 10000 --require ts-node/register src/**/*.test.ts",
     "fs-test": "firebase emulators:exec --only firestore 'npm test'"
   },
@@ -20,10 +20,8 @@
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^15.0.3",
-    "firebase": "^6.2.0",
-    "lodash": "^4.17.11",
-    "ts-node": "^8.0.3",
-    "typescript": "^3.3.3333"
+    "firebase": "^6.2.2",
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
     "@firebase/testing": "^0.11.0",
@@ -39,7 +37,9 @@
     "nodemon": "^1.18.10",
     "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0",
-    "tslint": "^5.14.0"
+    "ts-node": "^8.0.3",
+    "tslint": "^5.14.0",
+    "typescript": "^3.3.3333"
   },
   "nodemonConfig": {
     "ignore": [
@@ -53,5 +53,9 @@
     ],
     "exec": "npm start",
     "ext": "ts"
-  }
+  },
+  "files": [
+    "dist",
+    "dist.browser"
+  ]
 }
