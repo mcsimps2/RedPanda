@@ -2,12 +2,13 @@
 A quick and nasty Firestore ODM
 ## Connecting to the Firestore database
 ### `RedPanda.connect(db: Firestore)`
-RedPanda currently only supports one database connection at a time.  This connection will be used for all collections.
+RedPanda currently only supports one database connection at a time.
 
 ## Creating Document Classes
 Start off by defining your schemas.
-### `RedPanda.create(cls_name: string, schema: object, strict?: boolean): class
-Creates a Document subclass with the given class name `cls_name` and schema `schema`.  For defining schemas, Red Panda provides an extension of [joi](https://github.com/hapijs/joi) accessible via `RedPanda.types` with added support for `dbref` (foreign keys/documents) and `dbreflist` (array of foreign keys/documents).  `strict` mode indicates that unknown fields not defined in the `schema` object should be not be saved to the database; it is set, by default, to `false`.
+### `RedPanda.create(cls_name: string, schema: object, strict?: boolean, collection?: string|CollectionReference): class`
+Creates a document class with the given class name `cls_name` and schema `schema`.  For defining schemas, Red Panda provides an extension of [joi](https://github.com/hapijs/joi) accessible via `RedPanda.types` with added support for `dbref` (foreign keys/documents) and `dbreflist` (array of foreign keys/documents).  `strict` mode indicates that unknown fields not defined in the `schema` object should be not be saved to the database; it is set, by default, to `false`.
+The collection to which document instances of `cls_name` will be saved defaults to the lower case class name.  However, a `collection` may be passed in to override this.
 ```
 const UserDocument = RedPanda.create('User', {
   email: RedPanda.types.string().email().required(),
@@ -15,6 +16,7 @@ const UserDocument = RedPanda.create('User', {
   last_name: RedPanda.types.string().max(30),
   birth_year: RedPanda.types.number().integer().min(1900).max(2019)
 });
+// UserDocuments will be saved in the collection 'user' by default
 ```
 
 Use `dbref` to indicate a foreign key in a schema:
@@ -80,9 +82,10 @@ await user.sendConfirmationEmail();
 
 ## Instantiating Documents
 ### `constructor(data?: object, id?: string)`
-Instantiates an object with the given attributes from `data`.  You may also set the attributes later through dot syntax, e.g. `user.email = ...`.  If an `id` is passed, then the object will assume that ID when saving and loading from the database.  Otherwise, one will be automatically generated.  The data is NOT validated at this point, but rather when the document is saved to the database.
+Instantiates an object with the given attributes from `data`.  You may also set the attributes later through dot syntax, e.g. `user.email = ...`.  If an `id` is passed, then the object will assume that ID when saving and loading from the database.  Otherwise, one will be automatically generated.  The data is *NOT* validated at this point, but rather when the document is saved to the database.
 
-When dealing with foreign keys, you may pass either an ID or an instance as part of the data, as shown below.
+#### Foreign Keys
+When dealing with foreign keys, you may pass either an foreign ID or an foreign document as part of the data, as shown below.
 ```
 const user = new User({
   email: 'demo_email@gmail.com',
