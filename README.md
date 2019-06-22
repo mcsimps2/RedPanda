@@ -159,6 +159,7 @@ const full_name = user.first_name + user.last_name;
 console.log("User full name is", full_name);
 ```
 
+#### Foreign Key Attributes
 For attributes that are references to foreign documents (or are lists of foreign documents), it is recommended you simply use the `await` keyword before accessing the attribute in dot notation, *regardless of whether or not the attribute has already been retrieved*.  
 
 In more detail, what happens when accessing such an attribute is, if the foreign document is already available, it will be immediately returned. Otherwise, a promise will be returned.  In either case, it's advised that you use the `await` keyword when accessing any attribute corresponding to a foreign document to avoid any mishaps that could occur if you thought an attribute had already been retrieved, but it actually hadn't.  Note that using `await` on a non-Promise is OK, since `await` wraps such a value in a Promise that immediately resolves.  If the attribute is already available, then `await doc.attribute` will immediately resolve to that value; otherwise, if the attribute needs to be fetched, then `await doc.attribute` will fetch it.
