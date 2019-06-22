@@ -192,8 +192,11 @@ Currently, there is not yet support for automatically loading in all foreign ref
 
 
 
-## Instance Methods
-The following methods may be called on any document instance.
+## Instance Methods and Attributes
+The following methods and attributes are available on all document instances.
+### `id: string`
+The ID of the document.  If no ID is specified in the constructor, then the `id` field is auto-generated and only present after `save()` has been called.
+
 ### `save(): ID`
 Saves the document to the database and returns the ID of the document.  The document attributes will be validated against the pre-defined schema at this point and an error may be thrown if the schema is not satisfied.  If `strict` mode is on, then `save()` will silently ignore any fields not found in the schema.
 Recursive saves are not yet supported, so any foreign documents must already be saved at this point.
