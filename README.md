@@ -10,9 +10,10 @@ RedPanda currently only supports one database connection at a time.
 ## Defining Document Classes
 Start off by defining your schemas.
 ### `RedPanda.create(cls_name: string, schema: object, strict?: boolean, collection?: string|CollectionReference): class`
-Creates a (document) class with the given class name `cls_name` and schema `schema`.  For defining schemas, Red Panda provides an extension of [joi](https://github.com/hapijs/joi) accessible via `RedPanda.types` with added support for `dbref` (foreign keys/documents) and `dbreflist` (array of foreign keys/documents).  
+Creates a class with the given class name `cls_name` and schema `schema` to define documents for a given collection.  Documents will be instances of this new class.  `cls_name` should be the name of the collection (e.g. User, Business, etc...) unless you want to specify a collection reference manually (see below).
+- `schema`: For defining schemas, Red Panda provides an extension of [joi](https://github.com/hapijs/joi) accessible via `RedPanda.types` with added support for `dbref` (foreign keys/documents) and `dbreflist` (array of foreign keys/documents). 
  - `strict`: strict mode indicates that unknown fields not defined in the `schema` object should be not be saved to the database; it is set, by default, to `false`.
- - `collection`: The collection to which document instances of `cls_name` will be saved defaults to the lower case class name.  However, a `collection` name or Firestore reference may be passed in to override this.
+ - `collection`: The collection to which document instances of `cls_name` will be saved defaults to the lower case class name (`cls_name.toLowerCase()`).  However, a `collection` name or Firestore reference may be passed in to override this.
  
 #### Example
 ```
