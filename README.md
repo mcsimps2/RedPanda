@@ -1,14 +1,20 @@
 # Red Panda
 A quick and nasty Firestore ODM
+
+
 ## Connecting to the Firestore database
 ### `RedPanda.connect(db: Firestore)`
 RedPanda currently only supports one database connection at a time.
 
-## Creating Document Classes
+
+## Defining Document Classes
 Start off by defining your schemas.
 ### `RedPanda.create(cls_name: string, schema: object, strict?: boolean, collection?: string|CollectionReference): class`
-Creates a document class with the given class name `cls_name` and schema `schema`.  For defining schemas, Red Panda provides an extension of [joi](https://github.com/hapijs/joi) accessible via `RedPanda.types` with added support for `dbref` (foreign keys/documents) and `dbreflist` (array of foreign keys/documents).  `strict` mode indicates that unknown fields not defined in the `schema` object should be not be saved to the database; it is set, by default, to `false`.
-The collection to which document instances of `cls_name` will be saved defaults to the lower case class name.  However, a `collection` may be passed in to override this.
+Creates a (document) class with the given class name `cls_name` and schema `schema`.  For defining schemas, Red Panda provides an extension of [joi](https://github.com/hapijs/joi) accessible via `RedPanda.types` with added support for `dbref` (foreign keys/documents) and `dbreflist` (array of foreign keys/documents).  
+ - `strict`: strict mode indicates that unknown fields not defined in the `schema` object should be not be saved to the database; it is set, by default, to `false`.
+ - `collection`: The collection to which document instances of `cls_name` will be saved defaults to the lower case class name.  However, a `collection` name or Firestore reference may be passed in to override this.
+ 
+#### Example
 ```
 const UserDocument = RedPanda.create('User', {
   email: RedPanda.types.string().email().required(),
@@ -17,22 +23,6 @@ const UserDocument = RedPanda.create('User', {
   birth_year: RedPanda.types.number().integer().min(1900).max(2019)
 });
 // UserDocuments will be saved in the collection 'user' by default
-```
-
-Use `dbref` to indicate a foreign key in a schema:
-```
-const BusinessDocument = RedPanda.create('Business', {
-    name: RedPanda.types.string().required(),
-    user: RedPanda.types.dbref().collection(User).required()
-});
-```
-
-Similarly, use `dbreflist` to indicate a list of foreign keys:
-```
-const FranchiseDocument =  RedPanda.create('Franchise', {
-    name: RedPanda.types.string().required(),
-    entities: RedPanda.types.dbreflist().collection(Business).required()
-});
 ```
 
 A call to `RedPanda.create` creates a class, whose instances have access to the object methods below.  Thus, it is completely valid to instantiate `UserDocument` and start making calls to `.save()`. 
@@ -79,6 +69,31 @@ const user = new User({ email: 'demo_email@gmail.com'})
 await user.save();
 await user.sendConfirmationEmail();
 ```
+
+#### Foreign Keys in Schemas
+Use `dbref` to indicate a foreign key in a schema:
+```
+// A Business is controlled by a user
+const BusinessDocument = RedPanda.create('Business', {
+    name: RedPanda.types.string().required(),
+    user: RedPanda.types.dbref().collection(User).required()
+});
+
+class Business extends Business Document { ... }
+```
+
+Similarly, use `dbreflist` to indicate a list of foreign keys:
+```
+// A Franchise is a collection of businesses
+const FranchiseDocument =  RedPanda.create('Franchise', {
+    name: RedPanda.types.string().required(),
+    entities: RedPanda.types.dbreflist().collection(Business).required()
+});
+
+class Franchise extends Franchise { ... }
+```
+
+
 
 ## Instantiating Documents
 ### `constructor(data?: object, id?: string)`
@@ -173,7 +188,10 @@ console.log("The user's email is", business.user.email);
 
 Currently, there is not yet support for automatically loading in all foreign references upon document retrieval.
 
+
+
 ## Instance Methods
+The following methods may be called on any document instance.
 ### `save(): ID`
 Saves the document to the database and returns the ID of the document.  The document attributes will be validated against the pre-defined schema at this point and an error may be thrown if the schema is not satisfied.  If `strict` mode is on, then `save()` will silently ignore any fields not found in the schema.
 Recursive saves are not yet supported, so any foreign documents must already be saved at this point.
@@ -189,6 +207,7 @@ Updates the document with the given data and saves it to the database.  Returns 
 Deletes the document in the database and returns the ID.
 
 ## Querying the database
+The following methods are provided statically from the document class.
 To find an object by an ID, use the static method `findByID`.
 ### `findByID(id: string)`
 Returns the document corresponding to the given ID.  Returns `null` if no such document is found in the collection.
@@ -204,7 +223,7 @@ All normal Firestore queries are supported, along with an `update` function that
 
 Example query:
 ```
-const queryset = await Users.where("birth_year", ">=", 1980).where("birth_year", "<", 2010).orderBy("email", "asc").limit(10).get();
+const queryset = await User.where("birth_year", ">=", 1980).where("birth_year", "<", 2010).orderBy("email", "asc").limit(10).get();
 ```
 
 ### `update(data: object, retrieve?: boolean)`
@@ -213,8 +232,6 @@ Example update:
 ```
 const user = await User.findByID('192kjfd01jfds'); // Get the user of interest
 // Update all businesses owned by that user to record the user's email as the business email
-// Note that Business is not in strict mode, so additional fields are allowed that are not
-// defined in the schema
 const updated_users = await Business.where("user", "==", user.id).limit(1000).update({
   email: user.email
 }, true);
