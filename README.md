@@ -196,6 +196,12 @@ The following methods may be called on any document instance.
 Saves the document to the database and returns the ID of the document.  The document attributes will be validated against the pre-defined schema at this point and an error may be thrown if the schema is not satisfied.  If `strict` mode is on, then `save()` will silently ignore any fields not found in the schema.
 Recursive saves are not yet supported, so any foreign documents must already be saved at this point.
 
+Example:
+```
+const user = new User({ email: 'john_doe@gmail.com' });
+await user.save();
+```
+
 ### `reload()`
 Reloads the document to reflect the latest version in the database.
 Note: foreign documents are not currently reloaded right now.  You may manually reload them, e.g. `business.user.reload()`
@@ -203,8 +209,20 @@ Note: foreign documents are not currently reloaded right now.  You may manually 
 ### `update(data: object): ID`
 Updates the document with the given data and saves it to the database.  Returns the ID of the document.  Throws an error if any fields are invalid according to the class schema.  If `strict` mode is on, then `save()` will silently ignore any fields not found in the schema.
 
+Example:
+```
+const user = User.findByID('182371kjf8hs9d');
+await user.update({ email: 'mary_doe@gmail.com' });
+```
+
 ### `delete(): ID`
 Deletes the document in the database and returns the ID.
+
+Example:
+```
+const user = User.findByID('182371kjf8hs9d');
+await user.delete();
+```
 
 ## Querying the database
 The following methods are provided statically from the document class.
@@ -223,7 +241,11 @@ All normal Firestore queries are supported, along with an `update` function that
 
 Example query:
 ```
-const queryset = await User.where("birth_year", ">=", 1980).where("birth_year", "<", 2010).orderBy("email", "asc").limit(10).get();
+const queryset = await User.where("birth_year", ">=", 1980)
+                           .where("birth_year", "<", 2010)
+                           .orderBy("email", "asc")
+                           .limit(10)
+                           .get();
 ```
 
 ### `update(data: object, retrieve?: boolean)`
