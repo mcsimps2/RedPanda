@@ -487,6 +487,28 @@ describe('UserDocument', () => {
             expect(business.__id__user).to.be.equal(user3.id);
         })
 
+        it('sets getters for non-RedPanda types', async () => {
+            const House = RedPanda.create('House', {
+                address: RedPanda.types.string().required(),
+                owner: RedPanda.types.dbref().collection('owner_users')
+            });
+            const ref = await RedPanda.db.collection('owner_users').add({
+                first: 'Matty',
+                last: 'Simpson',
+                residency: 'USA'
+            });
+            const mansion = new House({
+                address: '1234 Memory Lane',
+                owner: ref.id
+            });
+            const owner = await mansion.owner;
+            expect(owner.data()).to.be.eql({
+                first: 'Matty',
+                last: 'Simpson',
+                residency: 'USA'
+            })
+        })
+
         it('allows arrays of foreign keys', async () => {
             let user, business, business2, business3, business4
             user = new User({

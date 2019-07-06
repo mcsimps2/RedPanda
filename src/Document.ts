@@ -110,8 +110,14 @@ class Document {
                 }
                 const collection_cls = val.describe().rules[0].arg['collection'];
                 // Set an entry in this.foreign_keys
-                if (!collection_cls.prototype || !(collection_cls.prototype instanceof Document)) { // Class
-                    throw new Error('Foreign key reference must be a subclass of Document');
+                // TODO: make collection references work as a pass to the schema
+                if (typeof collection_cls !== 'string'
+                    && (!collection_cls.prototype
+                    || !(collection_cls.prototype instanceof Document))) {
+                        // @ts-ignore
+                    // && !(collection_cls.prototype instanceof this.db.constructor.CollectionReference)
+                    throw new Error('Foreign key reference must be a subclass of Document, a CollectionReference,' +
+                        'or a name of a collection');
                 }
                 this.foreign_keys[key] = collection_cls;
             }
@@ -163,6 +169,8 @@ class Document {
         const foreign_keys_lst = Object.keys(foreign_keys);
         //@ts-ignore
         const schema = this.constructor.schema;
+        //@ts-ignore
+        const db = this.constructor.db;
         return new Proxy(this, {
             set(target, property, value) {
                 if (foreign_keys_lst.includes(property.toString())) {
@@ -229,7 +237,18 @@ class Document {
                             // Retrieve the object
                             return (async () => {
                                 const collection_cls = foreign_keys[property.toString()];
-                                const new_val = await collection_cls.findByID(id);
+                                let new_val;
+                                if (collection_cls.prototype instanceof Document) {
+                                    new_val = await collection_cls.findByID(id);
+                                }
+                                else if (typeof collection_cls === 'string') {
+                                    const snap = await db.collection(collection_cls).doc(id).get();
+                                    new_val = snap.exists ? snap : null;
+                                }
+                                else {
+                                    const snap = await collection_cls.doc(id).get();
+                                    new_val = snap.exists ? snap : null;
+                                }
                                 Reflect.set(target, '__obj__' + property.toString(), new_val);
                                 return new_val;
                             })();
@@ -243,7 +262,27 @@ class Document {
                                 let updated_ids = false;
                                 const new_ids = [];
                                 let objs: Array<any> = await Promise.all(ids.map(async (id, idx) => {
-                                    const obj = await collection_cls.findByID(id)
+                                    let obj;
+                                    if (collection_cls.prototype instanceof Document) {
+                                        obj = await collection_cls.findByID(id)
+                                    }
+                                    // In the case we aren't a RedPanda type, then return the underlying Firestore
+                                    // snapshot for use if not null
+                                    else {
+                                        let obj_snapshot;
+                                        // String
+                                        if (typeof collection_cls === 'string') {
+                                            obj_snapshot = db.collection(collection_cls).doc(id).get();
+                                        }
+                                        // Collection Reference
+                                        // TODO: Add test for that here
+                                        else {
+                                            obj_snapshot = await collection_cls.doc(id).get();
+                                        }
+
+                                        obj = obj_snapshot.exists ? obj_snapshot : null;
+                                    }
+
                                     if (!obj) {
                                         // Flag that need to remove from ids
                                         updated_ids = true;

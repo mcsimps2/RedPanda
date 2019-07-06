@@ -47,7 +47,9 @@ let rp_types: typeof Joi = Joi.extend((joi) => ({
                 collection: joi.any().required()
             },
             setup(params) {
-                if (!params.collection || !params.collection.prototype || !(params.collection.prototype instanceof Document)) { // Class
+                if (typeof params.collection === 'string') return;
+                if (!params.collection || !params.collection.prototype
+                    || !(params.collection.prototype instanceof Document)) {
                     return this.createError('dbref.collection', { message: 'No valid type passed' });
                 }
                 this._collection = params.collection;
@@ -99,7 +101,9 @@ rp_types = rp_types.extend((joi) => ({
                 collection: joi.any().required()
             },
             setup(params) {
-                if (!params.collection || !params.collection.prototype || !(params.collection.prototype instanceof Document)) { // Class
+                if (typeof params.collection !== 'string') return;
+                if (!params.collection || !params.collection.prototype
+                    || !(params.collection.prototype instanceof Document)) {
                     return this.createError('dbref.collection', { message: 'No valid type passed' });
                 }
                 this._collection = params.collection;
