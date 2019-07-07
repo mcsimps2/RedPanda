@@ -2,6 +2,7 @@
   "compilerOptions": {
     "lib": ["es6", "es2017", "dom"],
     "module": "commonjs",
+    "declaration": true,
     "esModuleInterop": true,
     "noImplicitReturns": true,
     "outDir": "dist",
