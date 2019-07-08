@@ -1,20 +1,27 @@
-import Document from './Document';
-import Types from './Types';
-import { firestore } from 'firebase';
+import * as Joi from "@hapi/joi";
+import { firestore } from "firebase";
+import Document from "./Document";
+import Types from "./Types";
+
+declare module "@hapi/Joi" {
+    export function dbref(): any;
+    export function dbreflist(): any;
+}
 
 export default class RedPanda {
-    static db: firestore.Firestore
+    public static db: firestore.Firestore;
+    public static types: typeof Joi = Types;
 
     // @ts-ignore
-    static connect(db: any|firestore.Firestore) {
+    // TS ignore because Firestore has messed up types
+    public static connect(db: any|firestore.Firestore) {
         this.db = db as unknown as firestore.Firestore;
     }
-    static types = Types;
 
-    static create(name: string, schema: object, strict?: boolean, collection?: string|firestore.CollectionReference):
-        typeof Document;
-    static create(name: string, schema: object, strict = false, collection?: string|firestore.CollectionReference):
-        typeof Document {
+    public static create(name: string, schema: object, strict?: boolean,
+                         collection?: string|firestore.CollectionReference): typeof Document;
+    public static create(name: string, schema: object, strict = false,
+                         collection?: string|firestore.CollectionReference): typeof Document {
         // const new_doc: Document = class extends Document {}
         // Object.defineProperty(new_doc, 'name', {value: name});
         // Another clever way to do this:
