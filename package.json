@@ -1,5 +1,5 @@
 {
-  "name": "RedPanda",
+  "name": "redpanda",
   "version": "1.0.0",
   "description": "ODM for Firestore",
   "main": "dist/index.js",
