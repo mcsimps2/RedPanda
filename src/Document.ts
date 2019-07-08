@@ -105,7 +105,7 @@ class Document {
             const val = schema[key];
             this._schema[key] = val;
             if (val.describe()['type'] === 'dbref' || val.describe()['type'] === 'dbreflist') {
-                if (!val.describe().rules[0] || !val.describe().rules[0].arg['collection']) {
+                if (!val.describe().rules || !val.describe().rules[0] || !val.describe().rules[0].arg['collection']) {
                     throw new Error('No collection class specified for field ' + key);
                 }
                 const collection_cls = val.describe().rules[0].arg['collection'];
