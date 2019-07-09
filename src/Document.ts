@@ -234,6 +234,9 @@ class Document {
                     else {
                         if (schema[property.toString()].describe()['type'] === 'dbref') {
                             const id = Reflect.get(target, '__id__' + property.toString(), receiver);
+                            if (!id) {
+                                return undefined;
+                            }
                             // Retrieve the object
                             return (async () => {
                                 const collection_cls = foreign_keys[property.toString()];
@@ -257,7 +260,7 @@ class Document {
                         else {
                             const ids: Array<string> = Reflect.get(target, '__id__' + property.toString(), receiver);
                             if (!ids) {
-                                return [];
+                                return undefined;
                             }
                             // Retrieve the objects
                             return (async () => {
