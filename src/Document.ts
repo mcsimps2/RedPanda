@@ -256,6 +256,9 @@ class Document {
                         // dbreflist
                         else {
                             const ids: Array<string> = Reflect.get(target, '__id__' + property.toString(), receiver);
+                            if (!ids) {
+                                return [];
+                            }
                             // Retrieve the objects
                             return (async () => {
                                 const collection_cls = foreign_keys[property.toString()];
