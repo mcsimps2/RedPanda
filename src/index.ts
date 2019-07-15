@@ -10,7 +10,7 @@ declare module "@hapi/Joi" {
 
 export default class RedPanda {
     public static db: firestore.Firestore;
-    public static types: typeof Joi = Types;
+    public static types: typeof Joi & { [x: string]: any } = Types;
 
     // @ts-ignore
     // TS ignore because Firestore has messed up types
