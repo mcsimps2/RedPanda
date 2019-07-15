@@ -1,6 +1,6 @@
 {
-  "name": "redpanda",
-  "version": "1.0.0",
+  "name": "redpanda-odm",
+  "version": "1.0.1",
   "description": "ODM for Firestore",
   "main": "dist/index.js",
   "scripts": {
@@ -21,13 +21,13 @@
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^15.0.3",
+    "@types/hapi__joi": "^15.0.2",
     "firebase": "^6.2.2",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
     "@firebase/testing": "^0.11.0",
     "@types/chai": "^4.1.7",
-    "@types/hapi__joi": "^15.0.2",
     "@types/lodash": "^4.14.134",
     "@types/mocha": "^5.2.7",
     "@types/sinon-chai": "^3.2.2",
