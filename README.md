@@ -207,9 +207,8 @@ const user = new User({ email: 'john_doe@gmail.com' });
 await user.save();
 ```
 
-### `reload()`
-Reloads the document to reflect the latest version in the database.
-Note: foreign documents are not currently reloaded right now.  You may manually reload them, e.g. `business.user.reload()`
+### `reload(recursive: boolean)`
+Reloads the document to reflect the latest version in the database.  If `recursive` is true, then foreign documents are also fetched.
 
 ### `update(data: object): ID`
 Updates the document with the given data and saves it to the database.  Returns the ID of the document.  Throws an error if any fields are invalid according to the class schema.  If `strict` mode is on, then `save()` will silently ignore any fields not found in the schema.

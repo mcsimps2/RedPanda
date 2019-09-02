@@ -454,7 +454,7 @@ class Document {
     }
 
     // TODO: Make this reload foreign documents too
-    async reload() {
+    async reload(recursive = false) {
         if (!this.doc_ref) {
             throw Error('Object has not been saved to database yet');
         }
@@ -462,10 +462,16 @@ class Document {
         if (!this.doc_snapshot.exists) {
             throw Error("Object does not exists in the database");
         }
-        //@ts-ignore
+        // @ts-ignore
         const new_obj = await this.constructor.fromSnapshot(this.doc_snapshot);
         Object.assign(this, new_obj);
         this.id = this.doc_snapshot.id;
+
+        // Reload foreign documents
+        if (recursive) {
+            // @ts-ignore
+            await Promise.all(Object.keys(this.constructor.foreign_keys).map((foreign_key) => this[foreign_key]));
+        }
     }
 
     async delete() {
