@@ -469,9 +469,16 @@ class Document {
 
         // Reload foreign documents
         if (recursive) {
-            // @ts-ignore
-            await Promise.all(Object.keys(this.constructor.foreign_keys).map((foreign_key) => this[foreign_key]));
+            await this.load();
         }
+    }
+
+    // Loads all foreign references, if they haven't already been loaded
+    async load() {
+        // @ts-ignore
+        await Promise.all(Object.keys(this.constructor.foreign_keys).map(async (foreign_key) => {
+            await this[foreign_key];
+        }));
     }
 
     async delete() {

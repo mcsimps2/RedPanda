@@ -1,6 +1,6 @@
 {
   "name": "redpanda-odm",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "ODM for Firestore",
   "main": "dist/index.js",
   "scripts": {
