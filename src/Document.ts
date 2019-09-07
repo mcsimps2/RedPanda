@@ -510,13 +510,9 @@ class Document {
         return obj;
     }
 
-    static async find(query: string|QueryBuilder) {
-        // An ID was passed
-        if (typeof query === 'string') {
-            return this.findByID(query);
-        }
-        else {
-            let fs_query = QueryBuilder.construct(this.coll_ref, query);
+    static async find(query?: string|QueryBuilder) {
+        if (query == null || typeof query !== 'string') {
+            let fs_query = query != null ? QueryBuilder.construct(this.coll_ref, query) : this.coll_ref;
             const query_snapshot = await fs_query.get();
             if (query_snapshot.empty) {
                 return [];
@@ -528,6 +524,10 @@ class Document {
 
             objs = objs.filter((obj) => obj != null);
             return objs;
+        }
+        // An ID was passed
+        else {
+            return this.findByID(query);
         }
     }
 
@@ -606,6 +606,10 @@ class Document {
         const qb = new QueryBuilder(this.find.bind(this), this.update.bind(this));
         // @ts-ignore
         return qb.endBefore(...args);
+    }
+
+    static get() {
+        return this.find();
     }
 }
 
