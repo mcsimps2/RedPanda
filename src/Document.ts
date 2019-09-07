@@ -187,6 +187,10 @@ class Document {
                             return Reflect.set(target, '__id__' + property.toString(), value.id)
                                     && Reflect.set(target, '__obj__' + property.toString(), value);
                         }
+                        else if (value == null) {
+                            return Reflect.set(target, '__id__' + property.toString(), null)
+                                && Reflect.set(target, '__obj__' + property.toString(), null);
+                        }
                         else {
                             throw new Error("Can only set a foreign reference with an id or Document subclass instance")
                         }
@@ -234,8 +238,8 @@ class Document {
                     else {
                         if (schema[property.toString()].describe()['type'] === 'dbref') {
                             const id = Reflect.get(target, '__id__' + property.toString(), receiver);
-                            if (!id) {
-                                return undefined;
+                            if (id == null) {
+                                return null;
                             }
                             // Retrieve the object
                             return (async () => {
@@ -259,8 +263,8 @@ class Document {
                         // dbreflist
                         else {
                             const ids: Array<string> = Reflect.get(target, '__id__' + property.toString(), receiver);
-                            if (!ids) {
-                                return undefined;
+                            if (ids == null) {
+                                return null;
                             }
                             // Retrieve the objects
                             return (async () => {
@@ -512,6 +516,7 @@ class Document {
 
     static async find(query?: string|QueryBuilder) {
         if (query == null || typeof query !== 'string') {
+            // @ts-ignore
             let fs_query = query != null ? QueryBuilder.construct(this.coll_ref, query) : this.coll_ref;
             const query_snapshot = await fs_query.get();
             if (query_snapshot.empty) {
@@ -522,6 +527,7 @@ class Document {
                 return obj;
             }));
 
+            // @ts-ignore
             objs = objs.filter((obj) => obj != null);
             return objs;
         }
