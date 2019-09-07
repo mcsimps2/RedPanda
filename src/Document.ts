@@ -583,6 +583,30 @@ class Document {
         // @ts-ignore
         return qb.limit(...args);
     }
+
+    static startAt(...args) {
+        const qb = new QueryBuilder(this.find.bind(this), this.update.bind(this));
+        // @ts-ignore
+        return qb.startAt(...args);
+    }
+
+    static endAt(...args) {
+        const qb = new QueryBuilder(this.find.bind(this), this.update.bind(this));
+        // @ts-ignore
+        return qb.endAt(...args);
+    }
+
+    static startAfter(...args) {
+        const qb = new QueryBuilder(this.find.bind(this), this.update.bind(this));
+        // @ts-ignore
+        return qb.startAfter(...args);
+    }
+
+    static endBefore(...args) {
+        const qb = new QueryBuilder(this.find.bind(this), this.update.bind(this));
+        // @ts-ignore
+        return qb.endBefore(...args);
+    }
 }
 
 export default Document;
