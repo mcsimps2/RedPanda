@@ -78,8 +78,8 @@ class Document {
     static set coll_name(name) {
         this._coll_name = name;
     }
-   
-    /** 
+
+    /**
      * Sets the collection ref
      * Probably shouldn't need to call this unless want the
      * coll_ref to be different than the coll_name
@@ -156,10 +156,10 @@ class Document {
     }
 
     /**
-     * Creates a proxy.  
+     * Creates a proxy.
      * Based on the foreign keys of the class, sets getters and setters appropriately.
      * Getters are such that they return a promise if the value has not been resolved before.
-     * They always resolve to a document instance. 
+     * They always resolve to a document instance.
      * Setters can take a document subclass instance or a document ID.
      */
     // TODO: allow lazy references)
@@ -179,7 +179,7 @@ class Document {
                     // Is this a foreign key or foreign key list?
                     if (schema[property.toString()].describe()['type'] === 'dbref') {
                         if (typeof value === 'string') {
-                            
+
                             return Reflect.set(target, '__id__' + property.toString(), value)
                                     && Reflect.set(target, '__obj__' + property.toString(), null);
                         }
@@ -328,7 +328,7 @@ class Document {
      * @param collection Name of the collection to store in
      */
     static initialize(schema: object, strict: boolean, collection?: string) {
-        this.schema = schema;        
+        this.schema = schema;
         this.strict = strict;
         this.coll_name = collection;
     }
@@ -366,7 +366,7 @@ class Document {
                 fields[key] = this['__id__' + key];
             }
         });
-        
+
         return sanitize(fields);
     }
 
@@ -497,6 +497,26 @@ class Document {
         return id;
     }
 
+    async getSnapshot() {
+    	if (this.doc_snapshot) {
+    	    return this.doc_snapshot;
+        }
+    	else {
+    	    if (!this.id) {
+    	        throw new Error("Document has not been saved to the database");
+            }
+    	    // @ts-ignore
+            const snapshot = await this.constructor.coll_ref.doc(this.id).get();
+    	    if (!snapshot || !snapshot.exists) {
+    	    	throw new Error("Document does not exist");
+            }
+    	    else {
+    	        this.doc_snapshot = snapshot;
+		        return snapshot;
+            }
+        }
+    }
+
     static async findByID(id: string) {
         const snapshot = await this.coll_ref.doc(id).get();
         return this.fromSnapshot(snapshot);
@@ -538,8 +558,8 @@ class Document {
     }
 
     /**
-     * 
-     * @param data 
+     *
+     * @param data
      * @param retrieve Retrieve the documents after they've been updated and return them
      * @param query if not defined, then applies update to whole collection
      */
@@ -640,7 +660,7 @@ export default Document;
     //                 throw new Error('Foreign key reference must be a subclass of Document');
     //             }
     //             this.foreign_keys[key] = collection_cls
-                    
+
     //             Object.defineProperty(this.prototype, key, {
     //                 set: (foreign_ref) => {
     //                     console.log("\n\n\nSETTER CALLED FOR ", key);
