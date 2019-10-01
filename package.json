@@ -1,6 +1,6 @@
 {
   "name": "redpanda-odm",
-  "version": "1.0.11",
+  "version": "1.0.14",
   "description": "ODM for Firestore",
   "main": "dist/index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freshspire-inc/firestore-odm.git"
+    "url": "git+https://github.com/mcsimps2/RedPanda.git"
   },
   "keywords": [],
   "author": "",

@@ -5,7 +5,13 @@
     ],
     "jsRules": {},
     "rules": {
-        "trailing-comma": [ false ]
+        "trailing-comma": [ false ],
+        "indent": [true, "tabs"],
+        "variable-name": [false],
+        "member-ordering": [false],
+        "member-access": [false],
+        "max-line-length": [false],
+        "one-line": [false]
     },
     "rulesDirectory": []
 }
