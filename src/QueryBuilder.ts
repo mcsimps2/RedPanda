@@ -106,17 +106,9 @@ export default class QueryBuilder {
             // @ts-ignore
             fs_query = fs_query.orderBy(...orderBy);
         }
-        const limit = qb.getLimit();
-        if (limit) {
-            fs_query = fs_query.limit(limit);
-        }
         const startAt = qb.getStartAt();
         if (startAt) {
             fs_query = fs_query.startAt(...startAt);
-        }
-        const endAt = qb.getEndAt();
-        if (endAt) {
-            fs_query = fs_query.endAt(...endAt);
         }
         const startAfter = qb.getStartAfter();
         if (startAfter) {
@@ -125,6 +117,14 @@ export default class QueryBuilder {
         const endBefore = qb.getEndBefore();
         if (endBefore) {
             fs_query = fs_query.endBefore(...endBefore);
+        }
+        const endAt = qb.getEndAt();
+        if (endAt) {
+            fs_query = fs_query.endAt(...endAt);
+        }
+        const limit = qb.getLimit();
+        if (limit) {
+            fs_query = fs_query.limit(limit);
         }
         return fs_query;
     }
