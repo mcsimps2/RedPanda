@@ -57,6 +57,7 @@ class Document {
 	id: string;
 	doc_ref: firestore.DocumentReference;
 	doc_snapshot: firestore.DocumentSnapshot;
+	listener_unsub: () => void;
 
 	/** Static attributes*/
 	static _coll_ref: firestore.CollectionReference = null;
@@ -319,7 +320,7 @@ class Document {
 	getAttributes(id = false): object {
 		// Make a list of everything we need to exclude
 		// Exclusion important for when strict is false
-		const exclude = ["doc_ref", "doc_snapshot"];
+		const exclude = ["doc_ref", "doc_snapshot", "listener_unsub"];
 		if (!id) {
 			exclude.push("id");
 		}
@@ -428,24 +429,28 @@ class Document {
 		}
 	}
 
-	// TODO: Make this reload foreign documents too
-	async reload(recursive = false) {
+	public async reload(recursive = false) {
 		if (!this.doc_ref) {
 			throw Error("Object has not been saved to database yet");
 		}
-		this.doc_snapshot = await this.doc_ref.get();
-		if (!this.doc_snapshot.exists) {
-			throw Error("Object does not exists in the database");
-		}
-		// @ts-ignore
-		const new_obj = await this.constructor.fromSnapshot(this.doc_snapshot);
-		Object.assign(this, new_obj);
-		this.id = this.doc_snapshot.id;
+		const snapshot = await this.doc_ref.get();
+		await this.reloadFromSnapshot(snapshot);
 
 		// Reload foreign documents
 		if (recursive) {
 			await this.load();
 		}
+	}
+
+	private async reloadFromSnapshot(snapshot) {
+		this.doc_snapshot = snapshot;
+		if (!this.doc_snapshot.exists) {
+			throw Error("Object does not exists in the database");
+		}
+		// @ts-ignore
+		const new_obj = await this.constructor.fromSnapshot(snapshot);
+		Object.assign(this, new_obj);
+		this.id = this.doc_snapshot.id;
 	}
 
 	// Loads all foreign references, if they haven't already been loaded
@@ -498,24 +503,57 @@ class Document {
 		return this.doc_ref;
 	}
 
-	static listen<T extends Document>(context: {
+	public subscribe() {
+		const ref = this.getReference();
+		this.unsubscribe();
+		this.listener_unsub = ref.onSnapshot(async (snapshot) => {
+			if (snapshot.exists) {
+				await this.reloadFromSnapshot(snapshot);
+			}
+		});
+	}
+
+	public unsubscribe(): boolean {
+		if (this.listener_unsub) {
+			this.listener_unsub();
+			this.listener_unsub = null;
+			return true;
+		}
+		return false;
+	}
+
+	public async listen(context) {
+		context.document = this;
+		// @ts-ignore
+		return this.constructor.listen(context);
+	}
+
+	static async listen<T extends Document>(context: {
 		id?: string,
+		document?: T,
 		onNext: (doc: T | T[]) => void,
 		onError?: (error: Error) => void,
 		onCompletion?: () => void,
 		options?: firestore.SnapshotListenOptions
 	});
-	static listen<T extends Document>(context: {
+	static async listen<T extends Document>(context: {
 		id?: string,
+		document?: T,
 		onNext: (doc: T | T[]) => void,
 		onError?: (error: Error) => void,
 		onCompletion?: () => void,
 		options?: firestore.SnapshotListenOptions
 	},                                query?: QueryBuilder) {
-		const { id, onNext, onError, onCompletion, options } = context;
+		const { id, document, onNext, onError, onCompletion, options } = context;
 		// Listening to a document
-		if (id) {
-			const ref = this.coll_ref.doc(id);
+		if (id || document) {
+			let ref;
+			if (id) {
+				ref = this.coll_ref.doc(id);
+			}
+			else {
+				ref = document.getReference();
+			}
 			const nextCb = async (snapshot: firestore.DocumentSnapshot) => {
 				// Can't think of a reason why the snapshot would exist at this point, but...
 				if (snapshot.exists) {
@@ -530,9 +568,9 @@ class Document {
 				return ref.onSnapshot(nextCb, onError, onCompletion);
 			}
 		} else {
-			const fs_query = query != null ? QueryBuilder.construct(this.coll_ref, query) : this.coll_ref;
+			const fs_query = query != null ? (await QueryBuilder.construct(this.coll_ref, query)) : this.coll_ref;
 			const nextCb = async (querysnapshot: firestore.QuerySnapshot) => {
-				const docs = await this._convertQuerySnapshot(querysnapshot);
+				const docs = await this.convertQuerySnapshot(querysnapshot);
 				onNext(docs as T[]);
 			};
 			if (options) {
@@ -544,7 +582,7 @@ class Document {
 		}
 	}
 
-	static async _convertQuerySnapshot(querysnapshot: firestore.QuerySnapshot) {
+	private static async convertQuerySnapshot(querysnapshot: firestore.QuerySnapshot) {
 		if (querysnapshot.empty) {
 			return [];
 		} else {
@@ -573,7 +611,7 @@ class Document {
 	static async find(query?: string|QueryBuilder) {
 		if (query == null || typeof query !== "string") {
 			// @ts-ignore
-			const fs_query = query != null ? QueryBuilder.construct(this.coll_ref, query) : this.coll_ref;
+			const fs_query = query != null ? (await QueryBuilder.construct(this.coll_ref, query)) : this.coll_ref;
 			const query_snapshot = await fs_query.get();
 			if (query_snapshot.empty) {
 				return [];
@@ -599,7 +637,7 @@ class Document {
 	 */
 	static async update(data: object, retrieve?: boolean);
 	static async update(data: object, retrieve = false, query?: QueryBuilder) {
-		const fs_query = query ? QueryBuilder.construct(this.coll_ref, query) : this.coll_ref;
+		const fs_query = query ? (await QueryBuilder.construct(this.coll_ref, query)) : this.coll_ref;
 		const query_snapshot = await fs_query.get();
 		if (query_snapshot.empty) {
 			return [];

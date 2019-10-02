@@ -721,18 +721,20 @@ describe("UserDocument", () => {
 		});
 
 		it("listens to a query change", (done) => {
-			const unsub = User.where("email", "==", "mateosimpson@gmail.com").listen({
+			let unsub;
+			User.where("email", "==", "mateosimpson@gmail.com").listen({
 				onNext: async (users: User[]) => {
 					expect(users.length).to.be.eql(1)	;
 					expect(users[0].email).to.be.eql("mateosimpson@gmail.com");
 					unsub();
 					done();
 				}
-			});
+			}).then((fn) => unsub = fn);
 		});
 
 		it("listens to a collection change", (done) => {
-			const unsub = User.listen({
+			let unsub;
+			User.listen({
 				onNext: async (users: User[]) => {
 					expect(users.length).to.be.eql(2)	;
 					const emails = users.map((user) => user.email);
@@ -741,12 +743,13 @@ describe("UserDocument", () => {
 					unsub();
 					done();
 				}
-			});
+			}).then((fn) => unsub = fn);
 		});
 
 		it("listens to a document change", (done) => {
 			let foundOldUser = false;
-			const unsub = User.listen({
+			let unsub;
+			User.listen({
 				id: user1.id,
 				onNext: async (new_user: User) => {
 					if (!foundOldUser) {
@@ -761,7 +764,7 @@ describe("UserDocument", () => {
 						done();
 					}
 				}
-			});
+			}).then((fn) => unsub = fn);
 		});
 
 	});

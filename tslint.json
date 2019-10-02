@@ -11,7 +11,8 @@
         "member-ordering": [false],
         "member-access": [false],
         "max-line-length": [false],
-        "one-line": [false]
+        "one-line": [false],
+        "object-literal-sort-keys": [false]
     },
     "rulesDirectory": []
 }

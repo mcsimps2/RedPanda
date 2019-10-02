@@ -1,88 +1,73 @@
 import { firestore } from "firebase";
+import Document from "./Document";
 
 export default class QueryBuilder {
-	query = {
-		where: [],
-		orderBy: null,
-		limit: null,
-		startAt: null,
-		startAfter: null,
-		endAt: null,
-		endBefore: null
-	}
-	find_callback: Function
-	update_callback: Function
-	listen_callback: Function
+	query: Array<{operator: string, op_args: any[]}> = [];
+	find_callback: Function;
+	update_callback: Function;
+	listen_callback: Function;
 
 	constructor(find_callback, update_callback, listen_callback) {
 		this.find_callback = find_callback;
 		this.update_callback = update_callback;
 		this.listen_callback = listen_callback;
+		this.query = [];
 	}
 
 	where(field: string, comparator: string, value: any) {
-		this.query.where.push([
-			field, comparator, value
-		]);
+		this.query.push({
+			operator: "where",
+			op_args: [field, comparator, value]
+		});
 		return this;
 	}
 
 	orderBy(field: string, direction: string) {
-		this.query.orderBy = [field, direction]
+		this.query.push({
+			operator: "orderBy",
+			op_args: [field, direction]
+		});
 		return this;
 	}
 
 	limit(amnt: number) {
-		this.query.limit = amnt;
+		this.query.push({
+			operator: "limit",
+			op_args: [amnt]
+		});
 		return this;
 	}
 
-	startAt(...args) {
-		this.query.startAt = args;
+	startAt(val: Document|firestore.FieldValue) {
+		this.query.push({
+			operator: "startAt",
+			op_args: [val]
+		});
 		return this;
 	}
 
-	endAt(...args) {
-		this.query.endAt = args;
+	endAt(val: Document |firestore.FieldValue) {
+		this.query.push({
+			operator: "endAt",
+			op_args: [val]
+		});
 		return this;
 	}
 
-	startAfter(...args) {
-		this.query.startAfter = args;
+	startAfter(val: Document|firestore.FieldValue) {
+		this.query.push({
+			operator: "startAfter",
+			op_args: [val]
+		});
 		return this;
 	}
 
-	endBefore(...args) {
-		this.query.endBefore = args;
+	endBefore(val: Document|firestore.FieldValue) {
+		this.query.push({
+			operator: "endBefore",
+			op_args: [val]
+		});
 		return this;
-	}
-
-	getWhere() {
-		return this.query.where;
-	}
-
-	getOrderBy() {
-		return this.query.orderBy;
-	}
-
-	getLimit() {
-		return this.query.limit;
-	}
-
-	getStartAt() {
-		return this.query.startAt;
-	}
-
-	getEndAt() {
-		return this.query.endAt;
-	}
-
-	getStartAfter() {
-		return this.query.startAfter;
-	}
-
-	getEndBefore() {
-		return this.query.endBefore;
 	}
 
 	async get() {
@@ -97,40 +82,45 @@ export default class QueryBuilder {
 		return this.listen_callback(context, this);
 	}
 
-	static construct(collection: firestore.CollectionReference | firestore.Query, qb: QueryBuilder) {
-		let fs_query = collection;
-		const wheres = qb.getWhere();
-		if (wheres) {
-			for (let key in wheres) {
-				const where = wheres[key];
-				// @ts-ignore
-				fs_query = fs_query.where(...where);
+	private static async applyOperator(fs_query: firestore.CollectionReference|firestore.Query, operator, op_args) {
+		let val;
+		if (["startAt", "startAfter", "endBefore", "endAt"].includes(operator)) {
+			const arg = op_args[0];
+			if (arg instanceof Document) {
+				val = await arg.getSnapshot();
+			}
+			else {
+				val = arg;
 			}
 		}
-		const orderBy = qb.getOrderBy();
-		if (orderBy) {
-			// @ts-ignore
-			fs_query = fs_query.orderBy(...orderBy);
+		switch (operator) {
+			case "where":
+				// @ts-ignore
+				return fs_query.where(...op_args);
+			case "orderBy":
+				// @ts-ignore
+				return fs_query.orderBy(...op_args);
+			case "limit":
+				// @ts-ignore
+				return fs_query.limit(...op_args);
+			case "startAt":
+				// @ts-ignore
+				return fs_query.startAt(val);
+			case "startAfter":
+				return fs_query.startAfter(val);
+			case "endBefore":
+				return fs_query.endBefore(val);
+			case "endAt":
+				return fs_query.endAt(val);
+			default:
+				throw new Error("Unknown operation " + operator);
 		}
-		const startAt = qb.getStartAt();
-		if (startAt) {
-			fs_query = fs_query.startAt(...startAt);
-		}
-		const startAfter = qb.getStartAfter();
-		if (startAfter) {
-			fs_query = fs_query.startAfter(...startAfter);
-		}
-		const endBefore = qb.getEndBefore();
-		if (endBefore) {
-			fs_query = fs_query.endBefore(...endBefore);
-		}
-		const endAt = qb.getEndAt();
-		if (endAt) {
-			fs_query = fs_query.endAt(...endAt);
-		}
-		const limit = qb.getLimit();
-		if (limit) {
-			fs_query = fs_query.limit(limit);
+	}
+
+	public static async construct(collection: firestore.CollectionReference | firestore.Query, qb: QueryBuilder) {
+		let fs_query = collection;
+		for (const { operator, op_args } of qb.query) {
+			fs_query = await this.applyOperator(fs_query, operator, op_args);
 		}
 		return fs_query;
 	}
