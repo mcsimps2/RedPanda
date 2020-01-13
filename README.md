@@ -235,6 +235,25 @@ const user = User.findByID('182371kjf8hs9d');
 await user.delete();
 ```
 
+### `listen(context): Function`
+Listens to the document for changes.  `context` is a dictionary with the structure
+```
+{
+		onNext: (doc: Document) => void,
+		onError?: (error: Error) => void,
+		onCompletion?: () => void,
+		options?: firestore.SnapshotListenOptions
+	}
+ ```
+ `onNext` is a function that will receive the updated document.  `listen` returns a function that can be called to unsubscribe the listener from further changes.
+ 
+ Example:
+```
+const targetedUser = User.findByID("Xlsdof28dkf2");
+const unsubscribe = targetedUser.listen({
+   onNext: (user) => console.log("The target user has changed!");
+```
+
 ### `doc_ref: DocumentReference`
 Underlying reference to the document in Firestore.  This field may be useful to users trying to access Firestore functionality not yet supported by RedPanda (e.g. subcollections).
 
@@ -292,6 +311,24 @@ const updated_users = await Business.where("user", "==", user.id).limit(1000).up
 }, true);
 ```
 
+### `listen(context): Function`
+Listens to the collection or query for document changes.  `context` is a dictionary with the form
+```
+{
+		onNext: (docs: Document[]) => void,
+		onError?: (error: Error) => void,
+		onCompletion?: () => void,
+		options?: firestore.SnapshotListenOptions
+	}
+ ```
+`onNext` is a function that will receive an array of documents that have been updated in the collection or query.  The returned fucntion from `listen` can be used to unsubscribe the listener from further changes.
+
+Example:
+```
+const unsubscribe = Business.where("city", "==", "Atlanta").listen({ 
+   onNext: (businesses) => console.log(`${businesses.length} businesses have been changed!`);
+});
+```
 
 ## Subcollections
 Subcollections are not supported at this time.  However, note that any functionality achieved with a subcollection can also be done by simply adding another field to a document and querying on that field.
