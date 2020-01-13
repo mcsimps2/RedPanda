@@ -2,6 +2,13 @@
 A quick and nasty Firestore ODM
 
 
+## Installing
+Make sure you have Firebase installed (or the relevant flavor you need for your application).
+
+`npm install --save firebase # or firebase-admin for Node applications`
+
+`npm install --save redpanda-odm`
+
 ## Connecting to the Firestore database
 ### `RedPanda.connect(db: Firestore)`
 RedPanda currently only supports one database connection at a time.
@@ -228,6 +235,16 @@ const user = User.findByID('182371kjf8hs9d');
 await user.delete();
 ```
 
+### `doc_ref: DocumentReference`
+Underlying reference to the document in Firestore.  This field may be useful to users trying to access Firestore functionality not yet supported by RedPanda (e.g. subcollections).
+
+## Class Attributes and Methods
+The following attributes and methods are available statically from a user defined document class.  Also see the "Querying the database" section below.
+
+### `Document.coll_ref: CollectionReference`
+Underlying reference to the collection in Firestore.  This field may be useful to users trying to access Firestore functionality not yet supported by RedPanda.
+
+
 ## Querying the database
 The following methods are provided statically from the document class.
 To find an object by an ID, use the static method `findByID`.
@@ -252,6 +269,15 @@ const queryset = await User.where("birth_year", ">=", 1980)
                            .get();
 ```
 
+### `select` projection queries
+Firestore has a hidden projection query operator (called a "mask") called `select` that isn't documented in the official Firebase documentation.  However, to users with the appropriate Firebase version, this functionality is available, as shown below:
+
+Example:
+```
+// Retrieve first and last names of all users born after 1980
+const projectionQuery = await User.where("birth_year", ">=", 1980).select("first_name", "last_name").get()
+```
+
 ### `update(data: object, retrieve?: boolean)`
 For any query, an update can also be run on that query with the given `data`.  If the `retrieve` flag is set, then the affected documents will be returned. Otherwise, the ids of the updated documents are returned.  `retrieve` defaults to `false`.
 Example update:
@@ -262,3 +288,6 @@ const updated_users = await Business.where("user", "==", user.id).limit(1000).up
   email: user.email
 }, true);
 ```
+
+## Subcollections
+Subcollections are not supported at this time.  However, note that any functionality achieved with a subcollection can also be done by simply adding another field to a document and querying on that field.
