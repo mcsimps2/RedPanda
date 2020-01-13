@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/mcsimps2/RedPanda.git"
   },
-  "keywords": ["firestore", "firebase", "odm", "orm", "object", "document", "mapper", "schema", "validation", "foreign", "key", "reference", "dereference"],
+  "keywords": ["firestore", "firebase", "odm", "orm", "object", "document", "mapper", "schema", "validation", "foreign", "key", "reference", "dereference", "red", "panda", "redpanda"],
   "author": "",
   "license": "ISC",
   "dependencies": {
