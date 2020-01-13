@@ -239,11 +239,11 @@ await user.delete();
 Listens to the document for changes.  `context` is a dictionary with the structure
 ```
 {
-		onNext: (doc: Document) => void,
-		onError?: (error: Error) => void,
-		onCompletion?: () => void,
-		options?: firestore.SnapshotListenOptions
-	}
+	onNext: (doc: Document) => void,
+	onError?: (error: Error) => void,
+	onCompletion?: () => void,
+	options?: firestore.SnapshotListenOptions
+}
  ```
  `onNext` is a function that will receive the updated document.  `listen` returns a function that can be called to unsubscribe the listener from further changes.
  
@@ -315,13 +315,13 @@ const updated_users = await Business.where("user", "==", user.id).limit(1000).up
 Listens to the collection or query for document changes.  `context` is a dictionary with the form
 ```
 {
-		onNext: (docs: Document[]) => void,
-		onError?: (error: Error) => void,
-		onCompletion?: () => void,
-		options?: firestore.SnapshotListenOptions
-	}
+	onNext: (docs: Document[]) => void,
+	onError?: (error: Error) => void,
+	onCompletion?: () => void,
+	options?: firestore.SnapshotListenOptions
+}
  ```
-`onNext` is a function that will receive an array of documents that have been updated in the collection or query.  The returned fucntion from `listen` can be used to unsubscribe the listener from further changes.
+`onNext` is a function that will receive an array of documents that have been updated in the collection or query.  The returned function from `listen` can be used to unsubscribe the listener from further changes.
 
 Example:
 ```
