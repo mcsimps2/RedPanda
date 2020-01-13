@@ -1,5 +1,48 @@
 # Red Panda
-A quick and nasty Firestore ODM
+A quick and nasty Firestore ODM.
+
+Features:
+ - Built in schema validation using joi.
+ - Automatically dereference foreign keys/references.  RedPanda will automatically translate foreign documents into references during save and dereference them when they are loaded.
+ - OOP design - create model classes and extend them with attributes and methods.
+ - No more clunky error handling.  Don't ever worry about `snapshot.exists` or `query.empty` again!
+ 
+ 
+Example:
+```
+// Define your schema 
+const UserDocument = RedPanda.create("User", {
+  name: RedPanda.types.string().required(),
+  company: RedPanda.types.dbref(Company).required() // Foreign key to the "Company" collection
+});
+
+// Extend the class with any additional methods
+class User extends UserDocument {
+  async sendConfirmationEmail() {
+    ...
+  }
+}
+
+// Instantiate and save documents
+const google = new Company({name: "Google", address: "1600 Amphitheatre Parkway, Mountain View, CA 94043" });
+google.save();  // document ID is XiDj72kfse92
+
+const newUser = new User({ name: "John Doe", company: google });
+newUser.save();  // User in the database is { name: "John Doe", company: "XiDj72kfse92" }
+
+// Query the database
+const userQuery = await User.where("name", "==", "John Doe").get();
+
+// Automatically dereference foreign keys
+for (const user in userQuery) {
+    // Retrieve foreign documents with async/await getter syntax
+    const company = await user.company;  // Resolves "XiDj72kfse92" to a Company object in the database
+    console.log("The company name is ", company.name); // "The company name is Google"
+}
+
+// Listen for realtime changes on documents, queries, and collections
+newUser.listen({ onNext: (user) => console.log(user) });
+```
 
 
 ## Installing
