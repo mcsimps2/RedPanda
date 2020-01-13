@@ -1,6 +1,6 @@
 {
   "name": "redpanda-odm",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "Firestore ODM with schema validation and support for foreign keys & references",
   "main": "dist/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/mcsimps2/RedPanda.git"
   },
-  "keywords": ["firestore", "firebase", "odm", "orm", "object", "document", "mapper", "red", "panda", "redpanda", "schema", "validation", "foreign", "key", "reference", "dereference"],
+  "keywords": ["firestore", "firebase", "odm", "orm", "object", "document", "mapper", "schema", "validation", "foreign", "key", "reference", "dereference"],
   "author": "",
   "license": "ISC",
   "dependencies": {
