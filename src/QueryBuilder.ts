@@ -78,6 +78,10 @@ export default class QueryBuilder {
 		return this;
 	}
 
+	async count() {
+		return (await this.select().find_callback(this)).length;
+	}
+
 	async get() {
 		return this.find_callback(this);
 	}

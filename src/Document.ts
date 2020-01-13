@@ -715,6 +715,11 @@ class Document {
 		return qb.select(...args);
 	}
 
+	static count() {
+		const qb = this._createQueryBuilder();
+		return qb.count();
+	}
+
 	static get() {
 		return this.find();
 	}
