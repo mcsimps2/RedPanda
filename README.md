@@ -278,6 +278,9 @@ Example:
 const projectionQuery = await User.where("birth_year", ">=", 1980).select("first_name", "last_name").get()
 ```
 
+### `count(): Promise<int>`
+Return the count of documents in the query or collection.  This functionality relies on the `select` function, so it is only available for Firebase versions with the `select` method available.
+
 ### `update(data: object, retrieve?: boolean)`
 For any query, an update can also be run on that query with the given `data`.  If the `retrieve` flag is set, then the affected documents will be returned. Otherwise, the ids of the updated documents are returned.  `retrieve` defaults to `false`.
 Example update:
@@ -288,6 +291,7 @@ const updated_users = await Business.where("user", "==", user.id).limit(1000).up
   email: user.email
 }, true);
 ```
+
 
 ## Subcollections
 Subcollections are not supported at this time.  However, note that any functionality achieved with a subcollection can also be done by simply adding another field to a document and querying on that field.
