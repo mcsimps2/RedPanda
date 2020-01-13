@@ -42,8 +42,6 @@ await user.save()
 However, you probably want to subclass this returned class to add additional methods, TypeScript definitions, etc...
 
 ```
-import {JsonObject, JsonProperty} from 'ta-json';
-
 class User extends UserDocument {
   email: string
   first_name: string
