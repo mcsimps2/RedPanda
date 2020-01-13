@@ -39,23 +39,16 @@ const user = new UserDocument({ email: 'demo_email@gmail.com'})
 await user.save()
 ```
 
-However, you probably want to subclass this returned class to add additional methods, JSON serialization decorators, TypeScript definitions, etc...
+However, you probably want to subclass this returned class to add additional methods, TypeScript definitions, etc...
 
 ```
 import {JsonObject, JsonProperty} from 'ta-json';
 
 class User extends UserDocument {
-  @JsonProperty('email')
   email: string
-  
-  @JsonProperty('firstName')
   first_name: string
-  
-  
-  @JsonProperty('lastName')
   last_name: string
   
-  @JsonProperty()
   get fullName() {
     return this.first_name + ' ' + this.last_name
   }
