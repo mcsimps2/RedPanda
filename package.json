@@ -1,6 +1,6 @@
 {
   "name": "redpanda-odm",
-  "version": "1.0.17",
+  "version": "1.0.19",
   "description": "ODM for Firestore",
   "main": "dist/index.js",
   "scripts": {
@@ -16,13 +16,12 @@
     "type": "git",
     "url": "git+https://github.com/mcsimps2/RedPanda.git"
   },
-  "keywords": [],
+  "keywords": ["firestore", "firebase", "odm", "orm", "object", "document", "mapper", "red", "panda", "redpanda"],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^15.0.3",
     "@types/hapi__joi": "^15.0.2",
-    "firebase": "^6.2.2",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
@@ -34,6 +33,7 @@
     "chai": "^4.2.0",
     "eslint": "^5.15.1",
     "eslint-plugin-import": "^2.16.0",
+    "firebase": "^6.2.2",
     "mocha": "^6.1.4",
     "nodemon": "^1.18.10",
     "sinon": "^7.3.2",

@@ -70,6 +70,14 @@ export default class QueryBuilder {
 		return this;
 	}
 
+	select(...fields: string[]) {
+		this.query.push({
+			operator: "select",
+			op_args: fields
+		});
+		return this;
+	}
+
 	async get() {
 		return this.find_callback(this);
 	}
@@ -112,6 +120,9 @@ export default class QueryBuilder {
 				return fs_query.endBefore(val);
 			case "endAt":
 				return fs_query.endAt(val);
+			case "select":
+				// @ts-ignore
+				return fs_query.select(...op_args);
 			default:
 				throw new Error("Unknown operation " + operator);
 		}

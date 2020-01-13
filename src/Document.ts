@@ -709,6 +709,12 @@ class Document {
 		return qb.endBefore(...args);
 	}
 
+	static select(...args) {
+		const qb = this._createQueryBuilder();
+		// @ts-ignore
+		return qb.select(...args);
+	}
+
 	static get() {
 		return this.find();
 	}
