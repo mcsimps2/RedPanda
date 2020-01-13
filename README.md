@@ -6,6 +6,7 @@ Features:
  - Automatically dereference foreign keys/references.  RedPanda will automatically translate foreign documents into references during save and dereference them when they are loaded.
  - OOP design - create model classes and extend them with attributes and methods.
  - No more clunky error handling.  Don't ever worry about `snapshot.exists` or `query.empty` again!
+ - Compatible with browser and Node Firebase libraries
  
  
 Example:
