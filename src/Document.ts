@@ -454,10 +454,17 @@ class Document {
 	}
 
 	// Loads all foreign references, if they haven't already been loaded
-	async load() {
+	async load(recursive = true) {
 		// @ts-ignore
 		await Promise.all(Object.keys(this.constructor.foreign_keys).map(async (foreign_key) => {
-			await this[foreign_key];
+			const foreign_ref = await this[foreign_key];
+			if (recursive && foreign_ref) {
+				if (Array.isArray(foreign_ref)) {
+					await Promise.all(foreign_ref.map((item) => item.load(true)));
+				} else {
+					await foreign_ref.load(true);
+				}
+			}
 		}));
 	}
 
