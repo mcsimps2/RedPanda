@@ -77,7 +77,7 @@ await newEmployee.save();
 ```
 // Simple Queries
 const employee = await Employee.findByID("A8djs7qQT");
-const companyQuery = await Company.orderBy("name", "asc").get();
+const employeeQuery = await Employee.where("lastName", ">=", "M").orderBy("firstName", "asc").limit(100).get();
 
 // Comlex queries that populate any foreign references automatically, including nested foreign keys
 
