@@ -14,11 +14,24 @@ Quickstart:
 // Connect to the Firestore database
 RedPanda.connect(db);
 
-// Define your schema
+// Define your schemas
+const PersonDocument = RedPanda.create("Person", {
+  firstName: RedPanda.types.string().required(),
+  lastName: RedPanda.types.string().required()
+});
+class Person extends PersonDocument {...}
+
+const Company = RedPanda.create("Company", {
+  name: RedPanda.types.string().required(),
+  address: RedPanda.types.string().required(),
+  ceo: RedPanda.types.dbref().collection(Person).required()
+});
+class Company extends CompanyDocument {...}
+
 const EmployeeDocument = RedPanda.create("Employee", {
   firstName: RedPanda.types.string().required(),
   lastName: RedPanda.types.string().required(),
-  company: RedPanda.types.dbref(Company).required() // Foreign key to the "Company" collection
+  company: RedPanda.types.dbref().collection(Company).required() // Foreign key to the "Company" collection
 });
 
 // Extend the class with any additional methods
