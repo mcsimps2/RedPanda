@@ -39,6 +39,11 @@ amazon.save();  // document ID is XiDj72kfse92
 const newUser = new User({ name: "John Doe", company: amazon });
 newUser.save();  // User in the database is { name: "John Doe", company: "XiDj72kfse92" }
 
+// Update documents
+newUser.email = "john_doe@gmail.com";
+await newUser.save();
+// Alternative: await newUser.update({ email: john_doe@gmail.com });
+
 // Query the database and populate any foreign references automatically - including nested foreign keys!
 const userQuery = await User.where("name", "==", "John Doe").get({ populate: ["company", "company.ceo"] });
 
@@ -53,6 +58,36 @@ const specificUser = await User.findByID("A8djs7qQT");
 // Listen for realtime changes on documents, queries, and collections
 specificUser.listen({ onNext: (user) => console.log(user) });
 ```
+
+## Table of Contents
+- [Installing](#installing)
+- [Connecting to Firestore](#connecting-to-the-firestore-database)
+	- [RedPanda.connect](#redpandaconnectdb-firestore)
+- [Defining Documents](#defining-document-classes-and-schemas)
+	- [RedPanda.create](#redpandacreatecls_name-string-schema-object-strict-boolean-collection-stringcollectionreference-class)
+		- [Foreign Keys in Schemas](#foreign-keys-in-schemas)
+- [Instantiating Documents](#instantiating-documents)
+	- [Adding foreign keys to a document](#adding-foreign-keys-to-a-document)
+- [Accessing Document Attributes](#accessing-document-attributes)
+	- [Foreign Key Attributes](#foreign-key-attributes-lookup-and-join)
+- [Instance Methods and Attributes](#instance-methods-and-attributes)
+	- [id](#id-string)
+	- [save](#save-id)
+	- [reload](#reloadrecursive-boolean)
+	- [update](#updatedata-object-id)
+	- [delete](#delete-id)
+	- [listen](#listencontext-function)
+	- [doc_ref](#doc_ref-documentreference)
+- [Class Methods and Attributes](#class-methods-and-attributes)
+	- [Document.coll_ref](#documentcoll_ref-collectionreference)
+- [Querying the Database](#querying-the-database)
+	- [findByID](#findbyidid-string-options-populate-string-populateall-boolean)
+	- [where, orderBy, limit, get](#where-orderby-limit-get)
+	- [select projection queries](#select-projection-queries)
+	- [count](#count-promiseint)
+	- [update](#updatedata-object-retrieve-boolean)
+	- [listen](#listencontext-function)
+- [Subcollections](#subcollections)
 
 
 ## Installing
@@ -72,7 +107,7 @@ RedPanda.connect(db);
 ```
 
 
-## Defining Document Classes
+## Defining Document Classes and Schemas
 Start off by defining your schemas.
 ### `RedPanda.create(cls_name: string, schema: object, strict?: boolean, collection?: string|CollectionReference): class`
 Creates a class with the given class name `cls_name` and schema `schema` to define documents for a given collection.  Documents will be instances of this new class.  `cls_name` should be the name of the collection (e.g. User, Business, etc...) unless you want to specify a collection reference manually (see below).
@@ -156,7 +191,7 @@ class Franchise extends Franchise { ... }
 ### `constructor(data?: object, id?: string)`
 Instantiates an object with the given attributes from `data`.  You may also set the attributes later through dot syntax, e.g. `user.email = ...`.  If an `id` is passed, then the object will assume that ID when saving and loading from the database.  Otherwise, one will be automatically generated.  The data is *NOT* validated at this point, but rather when the document is saved to the database.
 
-#### Foreign Keys
+#### Adding Foreign Keys to a Document
 When dealing with foreign keys, you may pass either an foreign ID or an foreign document as part of the data, as shown below.
 ```
 const user = new User({
@@ -206,7 +241,7 @@ const groupChat = new GroupChat({
 */
 ```
 
-## Accessing attributes
+## Accessing Document Attributes
 Attributes that are not references to foreign documents can be accessed normally.
 ```
 const user = new User({ email: 'john_doe@gmail.com', first_name: 'John', last_name: 'Doe' });
@@ -266,6 +301,13 @@ The following methods and attributes are available on all document instances.
 ### `id: string`
 The ID of the document.  If no ID is specified in the constructor, then the `id` field is auto-generated and only present after `save()` has been called.
 
+```
+const user = new User({ email: 'john_doe@gmail.com' });
+await user.save();
+
+console.log("The ID of the user is ", user.id); // The ID of the user is 91x827sjhag
+```
+
 ### `save(): ID`
 Saves the document to the database and returns the ID of the document.  The document attributes will be validated against the pre-defined schema at this point and an error may be thrown if the schema is not satisfied.  If `strict` mode is on, then `save()` will silently ignore any fields not found in the schema.
 Recursive saves are not yet supported, so any foreign documents must already be saved at this point.
@@ -273,6 +315,10 @@ Recursive saves are not yet supported, so any foreign documents must already be 
 Example:
 ```
 const user = new User({ email: 'john_doe@gmail.com' });
+await user.save();
+
+// Change the email
+user.email = "jeff_bezos@amazon.com";
 await user.save();
 ```
 
@@ -319,7 +365,7 @@ const unsubscribe = targetedUser.listen({
 ### `doc_ref: DocumentReference`
 Underlying reference to the document in Firestore.  This field may be useful to users trying to access Firestore functionality not yet supported by RedPanda (e.g. subcollections).
 
-## Class Attributes and Methods
+## Class Methods and Attributes
 The following attributes and methods are available statically from a user defined document class.  Also see the "Querying the database" section below.
 
 ### `Document.coll_ref: CollectionReference`
@@ -343,7 +389,7 @@ const business = await Business.findByID('9871kh1b232f'); // Searches Business c
 ```
 
 ### `where`, `orderBy`, `limit`, `get`,
-All normal Firestore queries are supported, along with an `update` function that updates all documents found in a query with the given data.  You can populate foreign references automatically with the `populate` and `populateAll` options in `get()` (see [findByID](###find-by-id)).
+All normal Firestore queries are supported, along with an `update` function that updates all documents found in a query with the given data.  You can populate foreign references automatically with the `populate` and `populateAll` options in `get()` (see [findByID](#findbyidid-string-options-populate-string-populateall-boolean)).
 
 Example query:
 ```
