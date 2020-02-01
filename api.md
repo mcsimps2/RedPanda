@@ -43,7 +43,7 @@ Make sure you have Firebase installed (or the relevant flavor you need for your 
 RedPanda currently only supports one database connection at a time.  Call this as early in your application as possible; the database must be connected before any database reads/writes can be performed.
 Example:
 ```
-const db =firebase.initializeApp(config).firestore();
+const db = firebase.initializeApp(config).firestore();
 RedPanda.connect(db);
 ```
 
