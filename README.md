@@ -44,12 +44,15 @@ newUser.email = "john_doe@gmail.com";
 await newUser.save();
 // Alternative: await newUser.update({ email: john_doe@gmail.com });
 
-// Query the database and populate any foreign references automatically - including nested foreign keys!
-const userQuery = await User.where("name", "==", "John Doe").get({ populate: ["company", "company.ceo"] });
+// Query the database and populate any foreign references automatically,
+// including nested foreign keys!
+const userQuery = await User.where("name", "==", "John Doe").get({ 
+  populate: ["company", "company.ceo"] 
+});
 
-for (const user in userQuery) {
+for (const user of userQuery) {
     console.log("The company name is ", company.name); // "The company name is Amazon"
-    console.log("The company's ceo is ", company.ceo.firstName, company.ceo.lastName); // The company's ceo is Jeff Bezos
+    console.log("The company's CEO is ", company.ceo.firstName, company.ceo.lastName); // The company's CEO is Jeff Bezos
 }
 
 // Get documents by their ID
