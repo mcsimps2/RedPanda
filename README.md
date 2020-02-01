@@ -76,11 +76,13 @@ await newEmployee.save();
 #### Query the database and $lookup & JOIN foreign keys
 ```
 // Query the database and populate any foreign references automatically, including nested foreign keys
-// Here, we ask RedPanda to go ahead and $lookup/JOIN the foreign keys Employee.company to a document in
-// "company" collection and "company.ceo" to a document in the "person" collection
+
+
 const employeeQuery = await Employee.where("name", "==", "John Doe").get({ 
   populate: ["company", "company.ceo"] 
 });
+// Here, we asked RedPanda to go ahead and $lookup/JOIN the foreign keys Employee.company to a document in
+// the "company" collection and "company.ceo" to a document in the "person" collection
 
 for (const employee of employeeQuery) {
     console.log("The company name is ", employee.company.name);
