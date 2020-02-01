@@ -82,12 +82,12 @@ export default class QueryBuilder {
 		return (await this.select().find_callback(this)).length;
 	}
 
-	async get() {
-		return this.find_callback(this);
+	async get(options?: {populate?: string[], populateAll?: boolean}) {
+		return this.find_callback(this, options);
 	}
 
-	async update(data: object, retrieve = false) {
-		return this.update_callback(data, retrieve, this);
+	async update(data: object, retrieve = false, options?: {populate?: string[], populateAll?: boolean}) {
+		return this.update_callback(data, retrieve, this, options);
 	}
 
 	listen(context) {

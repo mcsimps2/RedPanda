@@ -7,6 +7,7 @@ import RedPanda from "../";
 import Business from "./Business";
 import Organization from "./Organization";
 import User from "./User";
+import Animal from "./Animal";
 
 // Testing setup
 chai.use(sinonChai);
@@ -401,6 +402,50 @@ describe("UserDocument", () => {
 		});
 	});
 
+	describe("populate", () => {
+		it("populates the specified foreign references", async () => {
+			let user, business, animal;
+			animal = new Animal({
+				species: "homo sapiens"
+			});
+			await animal.save();
+			user = new User({
+				email: "ziwamukungu@gmail.com",
+				last: "Mukungu",
+				pets: [animal]
+			});
+			await user.save();
+			business = new Business({
+				name: "The Good Ol Cherrypickers - A very unique business",
+				user,
+				meta: 1
+			});
+			await business.save();
+			let foundBusiness = await Business.findByID(business.id, {
+				populate: ["user", "user.pets"]
+			});
+			expect(foundBusiness.user.email).to.be.equal(user.email);
+			expect(foundBusiness.user.pets.length).to.be.equal(1)
+			expect(foundBusiness.user.pets[0].species).to.be.equal("homo sapiens");
+
+
+			foundBusiness = await Business.findByID(business.id, {
+				populateAll: true
+			});
+			expect(foundBusiness.user.email).to.be.equal(user.email);
+			expect(foundBusiness.user.pets.length).to.be.equal(1)
+			expect(foundBusiness.user.pets[0].species).to.be.equal("homo sapiens");
+
+			// Try query
+			const query = await Business.where("name", "==", business.name).get({
+				populate: ["user", "user.pets"]
+			});
+			expect(query.length).to.be.equal(1);
+			expect(query[0].user.pets.length).to.be.equal(1);
+			expect(query[0].user.pets[0].species).to.be.equal("homo sapiens");
+		});
+	});
+
 	describe("delete", () => {
 		it("deletes the object in the database", async () => {
 			const user = new User({
@@ -619,13 +664,22 @@ describe("UserDocument", () => {
 		});
 	});
 
-	describe("Document queries (where, orderBy, limit, find, update)", () => {
-		let user, business, business2, business3, business4;
+	describe("Document queries (where, orderBy, limit, find, update, select, paginate)", () => {
+		let user, business, business2, business3, business4, animal;
 
 		it("finds queried objects", async () => {
+			const animal1 = new Animal({
+				species: "homo sapiens"
+			});
+			await animal1.save();
+			const animal2 = new Animal({
+				species: "aradopsis thaliana"
+			});
+			await animal2.save();
 			user = new User({
 				email: "ziwamukungu@gmail.com",
-				last: "Mukungu"
+				last: "Mukungu",
+				pets: [animal1, animal2]
 			});
 			await user.save();
 			business = new Business({
@@ -665,6 +719,16 @@ describe("UserDocument", () => {
 			expect(actual.meta).to.be.equal(3);
 		});
 
+		// it("can apply projections using select", async () => {
+		// 	const businessIDs = [business.id, business2.id, business3.id, business4.id];
+		//
+		// 	let query = await Business.select().get();
+		// 	expect(query.length).to.be.equal(4);
+		//
+		// 	let query = await Business.where("name", "==", "The New Cherrypickers").orderBy("meta", "desc").select().get();
+		// 	expect(query.length).to.be.equal(3);
+		// });
+
 		it("updates query objects", async () => {
 			const query = await Business.where("name", "==", "The New Cherrypickers");
 			const ids = await query.update({
@@ -680,13 +744,16 @@ describe("UserDocument", () => {
 		it("retrieves updated query objects", async () => {
 			const query = await Business.where("name", "==", "The Old Cherrypickers").update({
 				name: "Ye Old Cherrypickers"
-			}, true);
+			}, true, {
+					populate: ["user", "user.pets"]
+				}
+			);
 			expect(query.length).to.be.equal(3);
 			query.forEach((biz) => {
 				expect(biz.name).to.be.equal("Ye Old Cherrypickers");
+				expect(biz.user.pets.length).to.be.equal(2);
 			});
 		});
-
 	});
 
 	describe("listen", () => {

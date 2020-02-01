@@ -440,6 +440,7 @@ class Document {
 		if (recursive) {
 			await this.load();
 		}
+		return this;
 	}
 
 	private async reloadFromSnapshot(snapshot) {
@@ -466,6 +467,33 @@ class Document {
 				}
 			}
 		}));
+		return this;
+	}
+
+	async populateAll(recursive = true) {
+		return this.load(recursive);
+	}
+
+	async populate(fields: string[]) {
+		const sortedFields = fields.sort((a, b) => a.localeCompare(b));
+		const splitFields = sortedFields.map((field) => field.split("."));
+		let maxFieldLength = 1;
+		splitFields.forEach((field) => {
+			if (field.length > maxFieldLength) {
+				maxFieldLength = field.length;
+			}
+		});
+		for (let depth = 1; depth <= maxFieldLength; depth++) {
+			// Get all fields of the same depth at the same time
+			const fieldsOfDepth = splitFields.filter((field) => field.length === depth);
+			await Promise.all(fieldsOfDepth.map(async (field) => {
+				let target = await this[field[0]];
+				for (let i = 1; i < field.length; i++) {
+					target = await target[field[i]];
+				}
+			}));
+		}
+		return this;
 	}
 
 	async delete() {
@@ -598,9 +626,18 @@ class Document {
 		}
 	}
 
-	static async findByID(id: string) {
+	static async findByID(id: string, options?: {populate?: string[], populateAll?: boolean}) {
 		const snapshot = await this.coll_ref.doc(id).get();
-		return this.fromSnapshot(snapshot);
+		const res = await this.fromSnapshot(snapshot);
+		if (res && options) {
+			if (options.populate) {
+				await res.populate(options.populate);
+			}
+			if (options.populateAll) {
+				await res.populateAll(options.populateAll);
+			}
+		}
+		return res;
 	}
 
 	// TODO: resolve references (hence why it is async)
@@ -615,7 +652,7 @@ class Document {
 		return obj;
 	}
 
-	static async find(query?: string|QueryBuilder) {
+	static async find(query?: string|QueryBuilder, options?: {populate?: string[], populateAll?: boolean}) {
 		if (query == null || typeof query !== "string") {
 			// @ts-ignore
 			const fs_query = query != null ? (await QueryBuilder.construct(this.coll_ref, query)) : this.coll_ref;
@@ -625,6 +662,14 @@ class Document {
 			}
 			let objs = await Promise.all(query_snapshot.docs.map(async (snap) => {
 				const obj = await this.fromSnapshot(snap);
+				if (obj && options) {
+					if (options.populate) {
+						await obj.populate(options.populate);
+					}
+					if (options.populateAll) {
+						await obj.populateAll(options.populateAll);
+					}
+				}
 				return obj;
 			}));
 
@@ -632,7 +677,7 @@ class Document {
 			objs = objs.filter((obj) => obj != null);
 			return objs;
 		} else {
-			return this.findByID(query);
+			return this.findByID(query, options);
 		}
 	}
 
@@ -643,7 +688,7 @@ class Document {
 	 * @param query if not defined, then applies update to whole collection
 	 */
 	static async update(data: object, retrieve?: boolean);
-	static async update(data: object, retrieve = false, query?: QueryBuilder) {
+	static async update(data: object, retrieve = false, query?: QueryBuilder, options?: {populate?: string[], populateAll?: boolean}) {
 		const fs_query = query ? (await QueryBuilder.construct(this.coll_ref, query)) : this.coll_ref;
 		const query_snapshot = await fs_query.get();
 		if (query_snapshot.empty) {
@@ -663,7 +708,7 @@ class Document {
 		}));
 
 		if (retrieve) {
-			return Promise.all(updated_ids.map((id) => this.findByID(id)));
+			return Promise.all(updated_ids.map((id) => this.findByID(id, options)));
 		} else {
 			return updated_ids;
 		}
@@ -727,8 +772,8 @@ class Document {
 		return qb.count();
 	}
 
-	static get() {
-		return this.find();
+	static get(options?: {populate?: string[], populateAll?: boolean}) {
+		return this.find(undefined, options);
 	}
 }
 

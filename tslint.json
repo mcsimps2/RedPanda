@@ -12,7 +12,8 @@
         "member-access": [false],
         "max-line-length": [false],
         "one-line": [false],
-        "object-literal-sort-keys": [false]
+        "object-literal-sort-keys": [false],
+        "no-trailing-whitespace":  [false]
     },
     "rulesDirectory": []
 }
