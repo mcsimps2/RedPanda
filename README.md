@@ -7,9 +7,10 @@ Features:
  - OOP design - create model classes and extend them with attributes and methods.
  - No more clunky error handling.  Don't ever worry about `snapshot.exists` or `query.empty` again!
  - Compatible with browser and Node Firebase libraries
+ - Support for projection queries and getting the count of a query
  
 ## API
-Link to the API is here: 
+Link to the API documentation is here: [RedPanda API](api.md)
  
 ## Quickstart
 #### Connect to the Firestore database
@@ -30,7 +31,7 @@ class Person extends PersonDocument {...}
 const Company = RedPanda.create("Company", {
   name: RedPanda.types.string().required(),
   address: RedPanda.types.string().required(),
-  ceo: RedPanda.types.dbref().collection(Person).required()
+  ceo: RedPanda.types.dbref().collection(Person).required() // Reference to the "Person" collection
 });
 class Company extends CompanyDocument {...}
 
@@ -58,8 +59,13 @@ const amazon = new Company({
 });
 amazon.save();  // document ID is XiDj72kfse92
 
-const newEmployee = new Employee({ name: "John Doe", company: amazon });
-newEmployee.save();  // Employee in the database is { name: "John Doe", company: "XiDj72kfse92" }
+const newEmployee = new Employee({
+  firstName: "John",
+  lastName: "Doe",
+  company: amazon 
+});
+newEmployee.save();
+// Employee in the database is { firstName: "John", lastName: "Doe", company: "XiDj72kfse92" }
 
 // Update documents
 newEmployee.email = "john_doe@gmail.com";
@@ -69,8 +75,9 @@ await newEmployee.save();
 
 #### Query the database and $lookup & JOIN foreign keys
 ```
-// Query the database and populate any foreign references automatically,
-// including nested foreign keys!
+// Query the database and populate any foreign references automatically, including nested foreign keys
+// Here, we ask RedPanda to go ahead and $lookup/JOIN the foreign keys Employee.company to a document in
+// "company" collection and "company.ceo" to a document in the "person" collection
 const employeeQuery = await Employee.where("name", "==", "John Doe").get({ 
   populate: ["company", "company.ceo"] 
 });
@@ -86,8 +93,11 @@ for (const employee of employeeQuery) {
 const specificEmployee = await Employee.findByID("A8djs7qQT");
 
 // Populate any foreign keys you didn't already retrieve with async/await syntax
-await specificEmployee.company;
-console.log("The company name is ", specificEmployee.company.name)
+const company = await specificEmployee.company;
+console.log("The company name is ", company.name)
+
+// The company is now accessible without Promises needed
+console.log("The company address is ", specificEmployee.company.address);
 ```
 
 #### Listen for realtime changes
