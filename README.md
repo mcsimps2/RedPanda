@@ -75,7 +75,11 @@ await newEmployee.save();
 
 #### Query the database and $lookup & JOIN foreign keys
 ```
-// Query the database and populate any foreign references automatically, including nested foreign keys
+// Simple Queries
+const employee = await Employee.findByID("A8djs7qQT");
+const companyQuery = await Company.orderBy("name", "asc").get();
+
+// Comlex queries that populate any foreign references automatically, including nested foreign keys
 
 // Here, we asked RedPanda to go ahead and $lookup/JOIN the foreign keys Employee.company to a document in
 // the "company" collection and "company.ceo" to a document in the "person" collection
@@ -91,8 +95,6 @@ for (const employee of employeeQuery) {
     console.log("The company's CEO is ", employee.company.ceo.firstName, company.ceo.lastName);
     // The company's CEO is Jeff Bezos
 }
-
-// Get documents by their ID
 
 // Here, we only populate the company and not the company CEO
 const specificEmployee = await Employee.findByID("A8djs7qQT", {
