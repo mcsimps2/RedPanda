@@ -1,6 +1,6 @@
 {
   "name": "redpanda-odm",
-  "version": "1.2.0",
+  "version": "1.2.4",
   "description": "Firestore ODM with schema validation and support for foreign keys & references ($lookup and JOIN)",
   "main": "dist/index.js",
   "scripts": {
