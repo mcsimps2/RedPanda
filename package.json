@@ -1,7 +1,7 @@
 {
   "name": "redpanda-odm",
-  "version": "1.1.0",
-  "description": "Firestore ODM with schema validation and support for foreign keys & references",
+  "version": "1.2.0",
+  "description": "Firestore ODM with schema validation and support for foreign keys & references ($lookup and JOIN)",
   "main": "dist/index.js",
   "scripts": {
     "start": "node --inspect=5858 -r ts-node/register ./src/index.ts",
@@ -32,7 +32,10 @@
     "dereference",
     "red",
     "panda",
-    "redpanda"
+    "redpanda",
+    "lookup",
+    "$lookup",
+    "JOIN"
   ],
   "author": "",
   "license": "ISC",

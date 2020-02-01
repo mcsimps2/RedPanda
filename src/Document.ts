@@ -71,7 +71,7 @@ class Document {
 	}
 
 	static get coll_name(): string {
-		return this._coll_name || this.name.toLowerCase();
+		return this._coll_name || _.snakeCase(this.name);
 	}
 
 	static set coll_name(name) {
@@ -630,10 +630,10 @@ class Document {
 		const snapshot = await this.coll_ref.doc(id).get();
 		const res = await this.fromSnapshot(snapshot);
 		if (res && options) {
-			if (options.populate) {
+			if (options.populate != null) {
 				await res.populate(options.populate);
 			}
-			if (options.populateAll) {
+			if (options.populateAll != null) {
 				await res.populateAll(options.populateAll);
 			}
 		}
@@ -663,10 +663,10 @@ class Document {
 			let objs = await Promise.all(query_snapshot.docs.map(async (snap) => {
 				const obj = await this.fromSnapshot(snap);
 				if (obj && options) {
-					if (options.populate) {
+					if (options.populate != null) {
 						await obj.populate(options.populate);
 					}
-					if (options.populateAll) {
+					if (options.populateAll != null) {
 						await obj.populateAll(options.populateAll);
 					}
 				}

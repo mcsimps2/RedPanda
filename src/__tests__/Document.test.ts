@@ -4,10 +4,11 @@ import chai from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 import RedPanda from "../";
+import Animal from "./Animal";
+import AuthToken from "./AuthToken";
 import Business from "./Business";
 import Organization from "./Organization";
 import User from "./User";
-import Animal from "./Animal";
 
 // Testing setup
 chai.use(sinonChai);
@@ -60,6 +61,7 @@ describe("UserDocument", () => {
 	describe("coll_ref", () => {
 		it("defaults the collection to be the class name", () => {
 			expect(User.coll_name).to.be.equal("user");
+			expect(AuthToken.coll_name).to.be.equal("auth_token");
 		});
 
 		it("allows you to specify a name for the collection", () => {
