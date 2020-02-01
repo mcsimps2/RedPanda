@@ -15,7 +15,7 @@ Link to the API documentation is here: [RedPanda API](api.md)
 ## Quickstart
 #### Connect to the Firestore database
 ```
-// Connect to the Firestore database
+const db = firebase.initializeApp(config).firestore();
 RedPanda.connect(db);
 ```
 
@@ -77,12 +77,13 @@ await newEmployee.save();
 ```
 // Query the database and populate any foreign references automatically, including nested foreign keys
 
+// Here, we asked RedPanda to go ahead and $lookup/JOIN the foreign keys Employee.company to a document in
+// the "company" collection and "company.ceo" to a document in the "person" collection
 
 const employeeQuery = await Employee.where("name", "==", "John Doe").get({ 
   populate: ["company", "company.ceo"] 
 });
-// Here, we asked RedPanda to go ahead and $lookup/JOIN the foreign keys Employee.company to a document in
-// the "company" collection and "company.ceo" to a document in the "person" collection
+
 
 for (const employee of employeeQuery) {
     console.log("The company name is ", employee.company.name);
@@ -92,14 +93,18 @@ for (const employee of employeeQuery) {
 }
 
 // Get documents by their ID
-const specificEmployee = await Employee.findByID("A8djs7qQT");
 
-// Populate any foreign keys you didn't already retrieve with async/await syntax
-const company = await specificEmployee.company;
-console.log("The company name is ", company.name)
+// Here, we only populate the company and not the company CEO
+const specificEmployee = await Employee.findByID("A8djs7qQT", {
+   populate: ["company"]
+});
 
-// The company is now accessible without Promises needed
-console.log("The company address is ", specificEmployee.company.address);
+// Retrieve any foreign documents you didn't already populate with async/await syntax
+const ceo = await specificEmployee.company.ceo;
+console.log("The company CEO is ", ceo.firstName, ceo.lastName)
+
+// The foreign document is now accessible without Promises needed
+console.log("The company CEO is ", specificEmployee.company.ceo.firstName, specificEmployee.company.ceo.lastName)
 ```
 
 #### Listen for realtime changes
