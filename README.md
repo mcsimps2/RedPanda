@@ -78,6 +78,7 @@ specificUser.listen({ onNext: (user) => console.log(user) });
 	- [delete](#delete-id)
 	- [listen](#listencontext-function)
 	- [doc_ref](#doc_ref-documentreference)
+	- [foreign key IDs](#__id__foreignkey-string)
 - [Class Methods and Attributes](#class-methods-and-attributes)
 	- [Document.coll_ref](#documentcoll_ref-collectionreference)
 - [Querying the Database](#querying-the-database)
@@ -364,6 +365,19 @@ const unsubscribe = targetedUser.listen({
 
 ### `doc_ref: DocumentReference`
 Underlying reference to the document in Firestore.  This field may be useful to users trying to access Firestore functionality not yet supported by RedPanda (e.g. subcollections).
+
+### `__id__<foreignkey>: string`
+Since accessing a foreign key attribute may return a promise to the document, for users that only need access to the ID, this property may be useful.
+
+Example:
+```
+const user = new User({ company: "Xyjdfa7a261" });  // Company is a foreign key
+console.log("Company ID is ", user.__id__company);  // Company ID is Jq8wjq018
+
+const company = await user.company;
+console.log("Company ID is ", company.id);  // Company ID is Jq8wjq018
+
+```
 
 ## Class Methods and Attributes
 The following attributes and methods are available statically from a user defined document class.  Also see the "Querying the database" section below.
