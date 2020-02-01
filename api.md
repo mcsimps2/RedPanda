@@ -16,6 +16,8 @@
 	- [reload](#reloadrecursive-boolean)
 	- [update](#updatedata-object-id)
 	- [delete](#delete-id)
+	- [populate](#populatefields-string)
+	- [populateAll](#populateallrecursive-boolean)
 	- [listen](#listencontext-function)
 	- [doc_ref](#doc_ref-documentreference)
 	- [foreign key IDs](#__id__foreignkey-string)
@@ -292,11 +294,14 @@ Populates the specified foreign references in the document.  Nested foreign refe
 
 Example:
 ```
-employee.populate(["company", "company.ceo"]);
+await employee.populate(["company", "company.ceo"]);
 // company is a document in the Company collection, "company.ceo" is a document in the Person collection
 console.log("The company is ", employee.company);
 console.log("The company's CEO is ", employeee.company.ceo.firstName, ecmployee.company.ceo.lastName);
 ```
+
+### `populateAll(recursive: boolean)`
+Populates all the foreign references in the document.  Set `recursive` to true to do this recursively for the foreign references as well.  Beware of infinite loops if you have circular references.
 
 ### `listen(context): Function`
 Listens to the document for changes.  `context` is a dictionary with the structure
