@@ -72,7 +72,7 @@ specificUser.listen({ onNext: (user) => console.log(user) });
 - [Instantiating Documents](#instantiating-documents)
 	- [Adding foreign keys to a document](#adding-foreign-keys-to-a-document)
 - [Accessing Document Attributes](#accessing-document-attributes)
-	- [Foreign Key Attributes](#foreign-key-attributes-lookup-and-join)
+	- [Foreign Key Attributes ($lookup and JOIN)](#foreign-key-attributes-lookup-and-join)
 - [Instance Methods and Attributes](#instance-methods-and-attributes)
 	- [id](#id-string)
 	- [save](#save-id)
@@ -395,6 +395,7 @@ To find an object by an ID, use the static method `findByID`.
 ### `findByID(id: string, options: {populate?: string[], populateAll?: boolean})`
 Returns the document corresponding to the given ID.  Returns `null` if no such document is found in the collection.
 The options can be used to automatically populate any foreign keys/references to documents in other collections.  `populate` takes an array of fields to populate; it can also populate nested foreign references using the dot notation.  If `populateAll` is specified, then all foreign fields will be populated.  If `populateAll` is true, this is done recursively; if it is false, it is only done at the very top-level non-recursively.
+For more information on populating foreign keys through a $lookup and JOIN like methodology, see [Foreign Key Attributes ($lookup and JOIN)](#foreign-key-attributes-lookup-and-join).
 
 Example:
 ```
@@ -407,6 +408,7 @@ const business = await Business.findByID('9871kh1b232f'); // Searches Business c
 
 ### `where`, `orderBy`, `limit`, `get`,
 All normal Firestore queries are supported, along with an `update` function that updates all documents found in a query with the given data.  You can populate foreign references automatically with the `populate` and `populateAll` options in `get()` (see [findByID](#findbyidid-string-options-populate-string-populateall-boolean)).
+For more information on populating foreign keys through a $lookup and JOIN like methodology, see [Foreign Key Attributes ($lookup and JOIN)](#foreign-key-attributes-lookup-and-join).
 
 Example query:
 ```
