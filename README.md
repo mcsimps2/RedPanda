@@ -57,14 +57,14 @@ const amazon = new Company({
   address: "410 Terry Ave. North, Seattle, WA, 98109",
   ceo: await Person.where("firstName", "==", "Jeff").where("lastName", "==", "Bezos").get()[0]
 });
-amazon.save();  // document ID is XiDj72kfse92
+await amazon.save();  // document ID is XiDj72kfse92
 
 const newEmployee = new Employee({
   firstName: "John",
   lastName: "Doe",
   company: amazon 
 });
-newEmployee.save();
+await newEmployee.save();
 // Employee in the database is { firstName: "John", lastName: "Doe", company: "XiDj72kfse92" }
 
 // Update documents
