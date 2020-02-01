@@ -15,15 +15,15 @@ Quickstart:
 RedPanda.connect(db);
 
 // Define your schema
-const UserDocument = RedPanda.create("User", {
+const EmployeeDocument = RedPanda.create("Employee", {
   firstName: RedPanda.types.string().required(),
   lastName: RedPanda.types.string().required(),
   company: RedPanda.types.dbref(Company).required() // Foreign key to the "Company" collection
 });
 
 // Extend the class with any additional methods
-class User extends UserDocument {
-  async sendConfirmationEmail() {
+class Employee extends EmployeeDocument {
+  async sendPaycheck() {
     ...
   }
 }
@@ -32,34 +32,36 @@ class User extends UserDocument {
 const amazon = new Company({
   name: "Amazon",
   address: "410 Terry Ave. North, Seattle, WA, 98109",
-  ceo: await User.where("firstName", "==", "Jeff").where("lastName", "==", "Bezos").get()[0]
+  ceo: await Person.where("firstName", "==", "Jeff").where("lastName", "==", "Bezos").get()[0]
 });
 amazon.save();  // document ID is XiDj72kfse92
 
-const newUser = new User({ name: "John Doe", company: amazon });
-newUser.save();  // User in the database is { name: "John Doe", company: "XiDj72kfse92" }
+const newEmployee = new Employee({ name: "John Doe", company: amazon });
+newEmployee.save();  // Employee in the database is { name: "John Doe", company: "XiDj72kfse92" }
 
 // Update documents
-newUser.email = "john_doe@gmail.com";
-await newUser.save();
-// Alternative: await newUser.update({ email: john_doe@gmail.com });
+newEmployee.email = "john_doe@gmail.com";
+await newEmployee.save();
+// Alternative: await newEmployee.update({ email: john_doe@gmail.com });
 
 // Query the database and populate any foreign references automatically,
 // including nested foreign keys!
-const userQuery = await User.where("name", "==", "John Doe").get({ 
+const employeeQuery = await Employee.where("name", "==", "John Doe").get({ 
   populate: ["company", "company.ceo"] 
 });
 
-for (const user of userQuery) {
-    console.log("The company name is ", company.name); // "The company name is Amazon"
-    console.log("The company's CEO is ", company.ceo.firstName, company.ceo.lastName); // The company's CEO is Jeff Bezos
+for (const employee of employeeQuery) {
+    console.log("The company name is ", employee.company.name);
+    // "The company name is Amazon"
+    console.log("The company's CEO is ", employee.company.ceo.firstName, company.ceo.lastName);
+    // The company's CEO is Jeff Bezos
 }
 
 // Get documents by their ID
-const specificUser = await User.findByID("A8djs7qQT");
+const specificEmployee = await Employee.findByID("A8djs7qQT");
 
 // Listen for realtime changes on documents, queries, and collections
-specificUser.listen({ onNext: (user) => console.log(user) });
+specificEmployee.listen({ onNext: (employee) => console.log(employee) });
 ```
 
 ## Table of Contents
@@ -169,13 +171,16 @@ await user.sendConfirmationEmail();
 #### Foreign Keys in Schemas
 Use `dbref` to indicate a foreign key in a schema:
 ```
-// A Business is controlled by a user
+const UserDocument = RedPanda.create('User', {...});
+class User extends UserDocument {...}
+
+// A Business is controlled/owned by a user
 const BusinessDocument = RedPanda.create('Business', {
     name: RedPanda.types.string().required(),
     user: RedPanda.types.dbref().collection(User).required()
 });
 
-class Business extends Business Document { ... }
+class Business extends BusinessDocument { ... }
 ```
 
 Similarly, use `dbreflist` to indicate a list of foreign keys:
@@ -198,37 +203,37 @@ Instantiates an object with the given attributes from `data`.  You may also set 
 #### Adding Foreign Keys to a Document
 When dealing with foreign keys, you may pass either an foreign ID or an foreign document as part of the data, as shown below.
 ```
-const user = new User({
+const person = new Person({
   email: "demo_email@gmail.com",
   first_name: "Jeff",
   last_name: "Bezos"
 });
 
 /* OR
-const user = User();
-user.email = "demo_email@gmail.com";
-user.first_name = "Jeff";
-user.last_name = "Bezos";
+const person = Person();
+person.email = "demo_email@gmail.com";
+person.first_name = "Jeff";
+person.last_name = "Bezos";
 */
 
 // user must be saved first since recursive saves are not yet supported
-await user.save();
+await person.save();
 
 const amazon = new Company({
   name: "Amazon",
   address: "410 Terry Ave. North, Seattle, WA, 98109",
-  ceo: user
+  ceo: person
 });
 
 /* OR
-const biz = new Business({
+const amazon = new Business({
   name: "Amazon",
   address: "410 Terry Ave. North, Seattle, WA, 98109",
-  user: user.id
+  ceo: person.id
 });
 */
 ```
-The difference between the two is that, in the first case, the user will be immediately accessible via `company.ceo`, but in the second case, `company.ceo` returns a promise that needs to resolve in order to access the user object since only an ID was passed.
+The difference between the two is that, in the first case, the CEO Person document will be immediately accessible via `amazon.ceo`, but in the second case, `amazon.ceo` returns a promise that needs to resolve in order to access the user object since only an ID was passed.
 
 Likewise, with arrays of foreign keys:
 ```
@@ -262,17 +267,17 @@ Attributes that are references to foreign documents, or are lists of foreign doc
 
 **(1) Resolve during query** You can ask RedPanda to automatically populate any foreign documents during a query in `findByID()` or in `get()`:
 ```
-// This will automatically $lookup (JOIN) the user to the user's company object in the Company database.
+// This will automatically $lookup (JOIN) the employee to the employee's company object in the Company database.
 // We can also populate nested foreign documents with "." dot syntax - here, we also dereference the company's CEO as well,
-// which is another "User" object.
-const user = await User.findByID("XXXXXXXX", {
+// which is a "Person" document in "person" collection
+const employee = await Employee.findByID("XXXXXXXX", {
     populate: ["company", "company.ceo"]
 }
-console.log("The user's company is ", user.company.name);  // The user's company is "Amazon"
-console.log("The company's CEO is ", user.company.ceo.firstName, user.company.ceo.lastName);  // The company's CEO is Jeff Bezos
+console.log("The employee's company is ", user.company.name);  // The employee's company is "Amazon"
+console.log("The company's CEO is ", employee.company.ceo.firstName, employee.company.ceo.lastName);  // The company's CEO is Jeff Bezos
 
 // You can also automatically populate all foreign references recursively or non-recursively
-const users = await User.where("zipcode", "==", "27606").get({
+const employees = await Employee.where("zipcode", "==", "27606").get({
       populateAll: true // use "false" to populate foreign references non-recursively
 });
 ```
@@ -281,22 +286,22 @@ const users = await User.where("zipcode", "==", "27606").get({
 
 When you access an attribute that is a foreign reference, it either returns the document if it is already retrieved or returns a promise to the document.
 ```
-const user = await User.findByID("XXXXXXX");
+const employee = await Employee.findByID("XXXXXXX");
 
 // Since the company document has not been retrieved, we must first fetch it
-const company = await user.company;
+const company = await employee.company;
 
 console.log("The company is ", company.name);  // The company is Amazon
 
 // Now that the company document has been retrieved, we can access it normally without promises
-const address = user.company.address;  // No more async/await syntax needed now
+const address = employee.company.address;  // No more async/await syntax needed now
 console.log("The address is ", address);  // The address is 
 ```
 
 **Note** Since accessing a foreign reference attribute returns a promise, this may not be ideal for users who need to just access the `id` of the foreign document.  To get around this, you may access just the ID of a foreign document by looking at the field `document.__id__<name_of_property`:
 ```
-const user = await User.findByID("XXXXX");
-const companyID = user.__id__company;  // "XiDj72kfse92"
+const employee = await Employee.findByID("XXXXX");
+const companyID = employee.__id__company;  // "XiDj72kfse92"
 ```
 
 
@@ -347,6 +352,17 @@ const user = User.findByID('182371kjf8hs9d');
 await user.delete();
 ```
 
+### `populate(fields: string[])`
+Populates the specified foreign references in the document.  Nested foreign references can be populated with in the dot syntax format of `<foreign_key>.<nested_foreign_key>...` to an unlimited depth.
+
+Example:
+```
+employee.populate(["company", "company.ceo"]);
+// company is a document in the Company collection, "company.ceo" is a document in the Person collection
+console.log("The company is ", employee.company);
+console.log("The company's CEO is ", employeee.company.ceo.firstName, ecmployee.company.ceo.lastName);
+```
+
 ### `listen(context): Function`
 Listens to the document for changes.  `context` is a dictionary with the structure
 ```
@@ -374,10 +390,10 @@ Since accessing a foreign key attribute may return a promise to the document, fo
 
 Example:
 ```
-const user = new User({ company: "Xyjdfa7a261" });  // Company is a foreign key
-console.log("Company ID is ", user.__id__company);  // Company ID is Jq8wjq018
+const employee = new Employee({ company: "Xyjdfa7a261" });  // Company is a foreign key
+console.log("Company ID is ", employee.__id__company);  // Company ID is Jq8wjq018
 
-const company = await user.company;
+const company = await employee.company;
 console.log("Company ID is ", company.id);  // Company ID is Jq8wjq018
 
 ```
@@ -399,7 +415,7 @@ For more information on populating foreign keys through a $lookup and JOIN like 
 
 Example:
 ```
-const user = await User.findByID('2jhsd91u2jd2h8', {
+const employee = await Employee.findByID('2jhsd91u2jd2h8', {
      populate: ["company", "company.ceo"]
 }); // Searches the User collection for '2jhsd91u2jd2h8'
 
